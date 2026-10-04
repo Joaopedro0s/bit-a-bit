@@ -19,6 +19,7 @@ A lista completa, com dependências indiretas, está no SBOM (`reports/sbom.json
 | --- | --- |
 | Vite | MIT |
 | vite-plugin-singlefile | MIT |
+| esbuild (compila o Service Worker) | MIT |
 | TypeScript | Apache-2.0 |
 | Vitest e @vitest/coverage-v8 | MIT |
 | Playwright (@playwright/test) | Apache-2.0 |

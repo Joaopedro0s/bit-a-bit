@@ -19,6 +19,7 @@ Você é quem programa os semáforos de um cruzamento. Em vez de apertar botões
 - **Gênero:** quebra-cabeça de programação / automação, educativo.
 - **Plataforma:** web estática (HTML5), feita para celular na vertical (9:16), também funciona no computador.
 - **Tecnologia:** Phaser 3 + TypeScript + Vite. O build é um único `index.html` (com tudo embutido) publicado no GitHub Pages e também entregue em `build.zip` para jogar offline.
+- **Offline (PWA):** no site, um Service Worker guarda a versão aberta para jogar sem internet depois do primeiro acesso. Ele cuida só da pasta da própria release, busca a rede primeiro e nunca guarda o carregador da raiz nem o `rollout.json` (o canário e o rollback continuam funcionando).
 - **Sem servidor:** não há banco de dados, login nem coleta de dados. O progresso (estrelas por fase) fica só no `localStorage` do navegador.
 
 ## Mecânicas-core
@@ -112,7 +113,7 @@ Todos os sons são sintetizados na hora com a Web Audio API (nenhum arquivo de �
 
 - Testes de usabilidade com jovens do público-alvo e ajuste da dificuldade.
 - Novas fases: repetição com contador, quatro vias (Sul e Oeste) e semáforo de pedestres.
-- Service Worker para jogar offline depois do primeiro acesso, com cache restrito à pasta da release (sem cachear `rollout.json` nem o carregador da raiz).
+- Manifesto de PWA (ícone e "adicionar à tela inicial"), aproveitando o Service Worker que já existe.
 - Modo professor com relatório local (sem dados pessoais) e tradução para outras línguas.
 - Tamanho: o GDD original citava menos de 1 MB, o que não é possível com o Phaser. O build atual tem cerca de 1,7 MB (cerca de 400 kB comprimido), bem abaixo do limite de 5 MB.
 
@@ -123,8 +124,9 @@ Todos os sons são sintetizados na hora com a Web Audio API (nenhum arquivo de �
     |
     v
 +-------------------------------------------------------------+
-| CI: lint -> testes + cobertura (JUnit) -> Gitleaks ->        |
-|     npm audit + SBOM -> build -> GDD.pdf -> build.zip + SHA  |
+| CI: lint -> testes + cobertura (JUnit) -> Gitleaks ->       |
+|     npm audit + SBOM -> build (+ sw.js) -> GDD.pdf ->       |
+|     build.zip + SHA-256                                     |
 +-------------------------------------------------------------+
     |  (só na main)
     v

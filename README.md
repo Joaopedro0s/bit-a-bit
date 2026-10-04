@@ -20,8 +20,11 @@ Na fase 5, o controlador já vem escrito em JavaScript com um erro: toque nas pa
 
 ### Offline
 
-Baixe o `build.zip` da release, extraia e abra o `index.html` com dois cliques. Tudo (jogo, Phaser, estilos e
-fases) está dentro desse único arquivo; não precisa de internet nem de servidor.
+- **Pelo `build.zip`:** baixe o `build.zip` da release, extraia e abra o `index.html` com dois cliques. Tudo (jogo, Phaser,
+  estilos e fases) está dentro desse único arquivo; não precisa de internet nem de servidor.
+- **Pelo site:** depois do primeiro acesso, um Service Worker guarda a versão que você abriu, e ela volta a abrir sem internet.
+  Ele cuida só da pasta da própria release (`/hml/` ou `/releases/<sha>/`), sempre tenta a rede primeiro (para pegar
+  atualizações) e nunca guarda o carregador da raiz nem o `rollout.json`, então o canário e o rollback continuam funcionando.
 
 ## Como rodar o projeto
 
@@ -36,7 +39,7 @@ npm run build     # valida as fases e gera dist/index.html + dist/version.json
 | Script | O que faz |
 | --- | --- |
 | `npm run dev` | Servidor local com recarga automática |
-| `npm run build` | Roda os testes de integração das fases (`prebuild`) e gera o build em arquivo único |
+| `npm run build` | Roda os testes de integração das fases (`prebuild`) e gera o build em arquivo único, o `version.json` e o `sw.js` |
 | `npm test` | Testes de unidade e integração (Vitest) |
 | `npm run test:ci` | Testes com cobertura (mínimo 70% em `src/core/`) e relatório JUnit |
 | `npm run test:e2e` | Testes ponta a ponta (Playwright). Use `BASE_URL` para apontar para outro endereço |
@@ -63,6 +66,7 @@ acelera a simulação. Sem esse parâmetro nada disso existe.
 - **`src/scenes/`**: cenas do Phaser (Boot, Menu, Seleção de fases, Cruzamento, Fim de fase). Elas só desenham o estado que o core calcula.
 - **`src/ui/`**: Mesa de Programação e telas em HTML (acessível, tocável e com `data-testid` para o Playwright).
 - **`src/content/fases.json`** + **`fases.schema.json`**: as 5 fases, validadas com Ajv. Um JSON inválido quebra os testes e o build.
+- **`src/sw/`**: Service Worker (regras puras em `regras.ts`, testadas), compilado com esbuild para `dist/sw.js`.
 - Arte desenhada em código e sons sintetizados com Web Audio: nenhum asset de terceiros.
 
 ## Tamanho do build
@@ -70,6 +74,7 @@ acelera a simulação. Sem esse parâmetro nada disso existe.
 | Arquivo | Tamanho |
 | --- | --- |
 | `dist/index.html` (tudo embutido) | cerca de 1,7 MB (cerca de 400 kB com gzip) |
+| `dist/sw.js` | cerca de 1,3 kB |
 
 O GDD original falava em menos de 1 MB, mas só o Phaser já ocupa cerca de 1,2 MB. O build continua bem abaixo do
 limite de 5 MB (e o `build.zip`, do limite de 25 MB).
@@ -82,6 +87,10 @@ O jogo não tem login, não usa servidor e não coleta nenhum dado pessoal. No `
 | --- | --- |
 | `sinalAberto.progresso.v1` | Melhor número de estrelas por fase, por exemplo `{"estrelas":{"1":3}}` |
 | `sinalAberto.som.v1` | Se o som está ligado ou desligado |
+| `jogo_versao` | Gravada pelo carregador da raiz do site: qual versão (SHA) foi sorteada para você no canário |
+
+No site publicado, o Service Worker também guarda no Cache Storage do navegador uma cópia dos arquivos do jogo
+(`index.html` e `version.json`) para abrir sem internet. Não há dados pessoais nisso.
 
 Se o navegador bloquear o armazenamento (aba anônima, por exemplo), o jogo funciona normalmente, só não lembra o progresso.
 Para apagar tudo, basta limpar os dados do site no navegador.
