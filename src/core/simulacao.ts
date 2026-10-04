@@ -95,6 +95,8 @@ export class Simulacao {
   ultimaLinha: number | null = null;
   /** Ticks que o controlador ainda vai esperar. */
   espera = 0;
+  /** Passo a Passo: `avancar()` só consome a espera, sem executar linhas novas. */
+  modoPasso = false;
 
   private readonly interp: Interpretador;
   private readonly rng: Rng;
@@ -186,23 +188,25 @@ export class Simulacao {
   }
 
   /**
-   * Passo a Passo: executa UMA linha. Se for `esperar`, o trânsito anda
-   * aquele tempo. Devolve a linha executada.
+   * Passo a Passo: executa UMA linha, sem andar o tempo. Se a linha for
+   * `esperar`, quem chama deve chamar `avancar()` enquanto `espera > 0`
+   * (com `modoPasso` ligado, `avancar` só consome a espera e não roda mais linhas).
+   * Devolve a linha executada, ou `null` se ainda estiver esperando.
    */
+  executarLinha(): number | null {
+    if (!this.ativa || this.espera > 0) return null;
+    this.status = 'rodando';
+    return this.executarUma()?.linha ?? null;
+  }
+
+  /** Passo a Passo completo (sem animação): executa uma linha e já consome a espera. */
   passoLinha(): number | null {
     if (!this.ativa) return null;
-    this.status = 'rodando';
-    let linha = this.ultimaLinha;
-    if (this.espera === 0) {
-      const efeito = this.executarUma();
-      if (!efeito) return null;
-      linha = efeito.linha;
-    }
-    while (this.espera > 0 && this.status === 'rodando') {
-      this.espera--;
-      this.chegadas();
-      this.fisica();
-    }
+    const modoAnterior = this.modoPasso;
+    this.modoPasso = true;
+    const linha = this.espera > 0 ? this.ultimaLinha : this.executarLinha();
+    while (this.espera > 0 && this.status === 'rodando') this.avancar();
+    this.modoPasso = modoAnterior;
     return linha;
   }
 
@@ -272,6 +276,7 @@ export class Simulacao {
       this.espera--;
       if (this.espera > 0) return;
     }
+    if (this.modoPasso) return;
     for (let passos = 0; ; passos++) {
       if (passos >= LIMITE_PASSOS_POR_TICK) {
         this.falhar({

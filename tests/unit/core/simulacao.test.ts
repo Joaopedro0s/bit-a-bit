@@ -104,6 +104,22 @@ describe('Simulacao', () => {
     expect(sim.sinais.Norte.aberto).toBe(false);
   });
 
+  test('modo passo: avancar só consome a espera e não executa linhas novas', () => {
+    const sim = simular([abrir('Norte'), esperar(1), fechar('Norte'), esperar(1)]);
+    sim.modoPasso = true;
+    expect(sim.executarLinha()).toBe(1);
+    expect(sim.executarLinha()).toBe(2);
+    expect(sim.executarLinha()).toBeNull(); // ainda esperando
+    for (let i = 0; i < 20; i++) sim.avancar();
+    expect(sim.espera).toBe(0);
+    expect(sim.tick).toBe(20);
+    expect(sim.sinais.Norte.aberto).toBe(true); // nada além da espera foi executado
+    sim.modoPasso = false;
+    sim.avancar();
+    expect(sim.ultimaLinha).toBe(4);
+    expect(sim.sinais.Norte.aberto).toBe(false);
+  });
+
   test('conta carros na fila e guarda a maior fila', () => {
     const sim = simular([], {
       duracao: 10,
