@@ -1,0 +1,204 @@
+name: Esteira CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate short SHA
+        run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test (CI)
+        run: npm run test:ci
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Audit & SBOM
+        run: |
+          npm audit --omit=dev --audit-level=critical
+          mkdir -p reports
+          npm sbom --sbom-format cyclonedx > reports/sbom.json
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Pandoc and PDF Engine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra poppler-utils
+
+      - name: GDD PDF
+        run: |
+          npm run gdd:pdf
+          pdfinfo docs/GDD.pdf
+
+      - name: Zip Build
+        run: |
+          cd dist
+          zip -r ../build.zip ./*
+          cd ..
+          sha256sum build.zip > build.zip.sha256
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+          path: |
+            build.zip
+            build.zip.sha256
+            docs/GDD.pdf
+            reports/
+
+  deploy-hml:
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: homologacao
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+
+      - name: Calculate short SHA
+        run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Publicar em HML
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/publicar.sh
+          ./scripts/publicar.sh hml ${{ env.SHORT_SHA }}
+
+      - name: Wait for Pages update
+        run: |
+          TIMEOUT=300
+          INTERVAL=10
+          ELAPSED=0
+          TARGET_SHA="${{ env.SHORT_SHA }}"
+          URL="${{ vars.SITE_URL }}/hml/version.json"
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            RES=$(curl -s $URL || echo "{}")
+            FETCHED_SHA=$(echo $RES | jq -r .sha 2>/dev/null || echo "")
+            if [ "$FETCHED_SHA" == "$TARGET_SHA" ]; then
+              echo "Pages atualizado!"
+              exit 0
+            fi
+            echo "Aguardando Pages (atual: $FETCHED_SHA, esperado: $TARGET_SHA)..."
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          echo "Timeout esperando Pages."
+          exit 1
+
+      - name: Testes E2E HML
+        env:
+          BASE_URL: ${{ vars.SITE_URL }}/hml/
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+
+  deploy-prd:
+    needs: deploy-hml
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: producao
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+
+      - name: Calculate short SHA
+        run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Publicar em PRD (Canary)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/publicar.sh scripts/rollout.sh
+          ./scripts/publicar.sh releases/${{ env.SHORT_SHA }} ${{ env.SHORT_SHA }}
+          ./scripts/rollout.sh canario ${{ env.SHORT_SHA }} 10
+
+      - name: Testes E2E Smoke (Produção)
+        env:
+          BASE_URL: ${{ vars.SITE_URL }}/releases/${{ env.SHORT_SHA }}/
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/smoke.spec.ts
+
+      - name: Rollback on Failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/rollout.sh rollback
+          exit 1
+
+      - name: Promover Prd
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/rollout.sh promover
+
+  release:
+    needs: ci
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build.zip
+            build.zip.sha256
+            reports/sbom.json
+            docs/GDD.pdf

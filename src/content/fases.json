@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "conceito": "Sequência",
+    "dica": "Use os blocos para fazer o robô andar até o chip.",
+    "mapa": [
+      [0, 0, 0, 0],
+      [0, 1, 1, 2],
+      [0, 0, 0, 0]
+    ],
+    "startPos": { "x": 1, "y": 1, "dir": 0 },
+    "chips": 1,
+    "ideal": 3,
+    "solucao": ["andar", "andar", "pegar"]
+  },
+  {
+    "id": 2,
+    "conceito": "Ordem e Curvas",
+    "dica": "Lembre-se de virar antes de bater na parede!",
+    "mapa": [
+      [0, 0, 0, 0],
+      [0, 1, 1, 0],
+      [0, 0, 2, 0]
+    ],
+    "startPos": { "x": 1, "y": 1, "dir": 0 },
+    "chips": 1,
+    "ideal": 4,
+    "solucao": ["andar", "virar-direita", "andar", "pegar"]
+  }
+]

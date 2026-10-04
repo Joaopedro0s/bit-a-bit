@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Carregador - Bit a Bit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Carregando o jogo...</h1>
+  <p id="msg">Verificando versão disponível...</p>
+  <script>
+    async function init() {
+      try {
+        const res = await fetch('rollout.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Falha ao obter rollout.json');
+        const rollout = await res.json();
+        
+        let versaoSalva = null;
+        try {
+          versaoSalva = localStorage.getItem('jogo_versao');
+        } catch (e) {}
+
+        let versao = rollout.estavel;
+        if (versaoSalva && (versaoSalva === rollout.estavel || versaoSalva === rollout.canario)) {
+          versao = versaoSalva;
+        } else if (rollout.canario && Math.random() * 100 < rollout.percentual) {
+          versao = rollout.canario;
+        }
+        
+        try {
+          if (versao) localStorage.setItem('jogo_versao', versao);
+        } catch (e) {}
+
+        if (!versao) {
+           document.getElementById('msg').innerText = 'Nenhuma versão disponível ainda.';
+           return;
+        }
+
+        window.location.href = `releases/${versao}/`;
+      } catch (err) {
+        document.getElementById('msg').innerText = 'Erro ao carregar versão. Tente novamente mais tarde.';
+        console.error(err);
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+title = "gitleaks config"
+
+[allowlist]
+description = "Allow testing and example credentials"
+paths = [
+    '''tests/.*''',
+    '''\.github/workflows/.*'''
+]

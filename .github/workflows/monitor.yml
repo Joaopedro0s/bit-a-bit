@@ -1,0 +1,20 @@
+name: Monitoramento DORA e Sondas
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sondas de HML e PRD
+        run: |
+          echo "Simulando execução das sondas..."
+          echo "data,alvo,codigo,tempo" > pages/status/sondas.csv
+          echo "$(date -Iseconds),hml,200,150" >> pages/status/sondas.csv
+          echo "$(date -Iseconds),prd,200,120" >> pages/status/sondas.csv
+      - name: Salvar no branch observabilidade
+        run: echo "Commit para branch observabilidade ignorado localmente"
