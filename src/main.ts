@@ -12,6 +12,7 @@ import { FimFaseScene } from './scenes/FimFaseScene';
 import { MenuScene } from './scenes/MenuScene';
 import { SelecaoFasesScene } from './scenes/SelecaoFasesScene';
 import { ALTURA, LARGURA } from './scenes/vistaCruzamento';
+import { registrarServiceWorker } from './sw/registrar';
 import { ligarHookDeTeste } from './testeHook';
 import { el } from './ui/dom';
 
@@ -53,3 +54,6 @@ new Phaser.Game({
   },
   scene: [BootScene, MenuScene, SelecaoFasesScene, CruzamentoScene, FimFaseScene],
 });
+
+// Offline depois do primeiro acesso (só no site publicado; escopo = pasta da release).
+registrarServiceWorker();
