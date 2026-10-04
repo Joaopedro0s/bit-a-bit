@@ -183,8 +183,9 @@ p {
   border-radius: 10px;
   padding: 10px;
   margin: 0;
-  white-space: pre;
-  overflow-x: auto;
+  /* Quebra linhas longas: no celular nada fica escondido à direita. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   color: #e8f1f5;
 }
 
@@ -427,12 +428,37 @@ p {
 }
 
 /* Fase 5: código com partes que mudam ao tocar. */
+.codigo.editor {
+  flex: 1 1 auto;
+  min-height: 120px;
+  overflow: auto;
+  line-height: 1.6;
+  font-size: 0.82rem;
+}
+
+.linha-codigo {
+  border-radius: 6px;
+  padding: 0 4px;
+  min-height: 1.6em;
+}
+
+.linha-codigo.ativa {
+  background: #0f4a7a;
+  outline: 2px solid #64b5f6;
+}
+
+.linha-codigo.erro {
+  background: #6b1512;
+  outline: 2px solid var(--vermelho);
+}
+
 .token {
   font: inherit;
-  min-height: 32px;
-  min-width: 32px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 0 6px;
-  margin: 0 1px;
+  margin: 3px 1px;
+  vertical-align: middle;
   border-radius: 6px;
   background: #4a2a63;
   color: #fff;

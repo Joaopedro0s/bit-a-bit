@@ -289,7 +289,7 @@
     "titulo": "Código de verdade",
     "conceito": "Ler e consertar código: o mesmo raciocínio dos blocos, escrito em JavaScript.",
     "dica": "Este controlador está escrito em JavaScript de verdade, mas tem UM erro e a fila do Leste não para de crescer. Toque nas partes destacadas para trocar e descubra o que está errado.",
-    "revelacao": "Você leu e consertou código de verdade. Programadores passam boa parte do dia fazendo exatamente isso.",
+    "revelacao": "Programadores passam boa parte do dia lendo código e caçando erros, exatamente como você acabou de fazer.",
     "tipo": "codigo",
     "transito": {
       "duracao": 60,

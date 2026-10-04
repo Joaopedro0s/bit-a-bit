@@ -10,8 +10,11 @@ import { Simulacao, TICKS_POR_SEGUNDO } from '../core/simulacao';
 import { contexto, trocarPainel } from '../contexto';
 import { registrarEstrelas, salvarProgresso } from '../progresso';
 import { publicarEstado } from '../testeHook';
+import * as sons from '../audio';
 import { abrirJanela, el } from '../ui/dom';
-import { Mesa, type EstadoMesa } from '../ui/mesa';
+import { EditorCodigo } from '../ui/editorCodigo';
+import { Mesa } from '../ui/mesa';
+import type { AcoesPainel, EstadoPainel, PainelFase } from '../ui/painelFase';
 import { VistaCruzamento } from './vistaCruzamento';
 
 const VELOCIDADES = [1, 2, 4];
@@ -21,9 +24,9 @@ const MAX_TICKS_POR_FRAME = 200;
 export class CruzamentoScene extends Phaser.Scene {
   private fase!: Fase;
   private vista!: VistaCruzamento;
-  private mesa!: Mesa;
+  private mesa!: PainelFase;
   private sim!: Simulacao;
-  private estado: EstadoMesa = 'editando';
+  private estado: EstadoPainel = 'editando';
   private acumulado = 0;
 
   constructor() {
@@ -43,25 +46,19 @@ export class CruzamentoScene extends Phaser.Scene {
     });
     this.novaSimulacao([]);
 
-    if (this.fase.tipo === 'codigo') {
-      // A fase 5 (JavaScript editável) entra na próxima etapa.
-      trocarPainel(el('div', { classe: 'tela' }, el('h2', {}, 'Fase 5 em construção'), el('p', {}, 'Volte em breve!')));
-      return;
-    }
-
-    this.mesa = new Mesa(
-      this.fase,
-      {
-        iniciar: () => this.iniciar(),
-        passo: () => this.passo(),
-        reiniciar: () => this.reiniciar(),
-        verJs: () => this.verJs(),
-        velocidade: () => this.trocarVelocidade(),
-        voltar: () => this.scene.start('SelecaoFases'),
-        editou: () => this.reiniciar(),
-      },
-      contexto().velocidade,
-    );
+    const acoes: AcoesPainel = {
+      iniciar: () => this.iniciar(),
+      passo: () => this.passo(),
+      reiniciar: () => this.reiniciar(),
+      verJs: () => this.verJs(),
+      velocidade: () => this.trocarVelocidade(),
+      voltar: () => this.scene.start('SelecaoFases'),
+      editou: () => this.reiniciar(),
+    };
+    this.mesa =
+      this.fase.tipo === 'codigo'
+        ? new EditorCodigo(this.fase, acoes, contexto().velocidade)
+        : new Mesa(this.fase, acoes, contexto().velocidade);
     trocarPainel(this.mesa.raiz);
     this.publicar();
 
@@ -172,6 +169,7 @@ export class CruzamentoScene extends Phaser.Scene {
       this.sim = new Simulacao(this.fase.transito, montarPrograma(this.mesa.linhas));
     } catch (e) {
       if (!(e instanceof ErroPrograma)) throw e;
+      sons.erro();
       this.mesa.mostrarMensagem('erro', e.message);
       this.mesa.destacarLinha(e.linha, 'erro');
       return false;
@@ -181,7 +179,7 @@ export class CruzamentoScene extends Phaser.Scene {
     return true;
   }
 
-  private mudarEstado(estado: EstadoMesa): void {
+  private mudarEstado(estado: EstadoPainel): void {
     this.estado = estado;
     this.mesa.definirEstado(estado);
     this.publicar();
@@ -191,7 +189,12 @@ export class CruzamentoScene extends Phaser.Scene {
     this.mudarEstado('acabou');
     const sim = this.sim;
     if (sim.falha) {
-      if (sim.falha.tipo === 'colisao') this.vista.mostrarBatida();
+      if (sim.falha.tipo === 'colisao') {
+        this.vista.mostrarBatida();
+        sons.freio();
+      } else {
+        sons.erro();
+      }
       this.mesa.destacarLinha(sim.falha.linha, 'erro');
       this.mesa.mostrarMensagem('erro', sim.falha.mensagem);
       this.publicar();
@@ -212,6 +215,7 @@ export class CruzamentoScene extends Phaser.Scene {
       const ctx = contexto();
       ctx.progresso = registrarEstrelas(ctx.progresso, this.fase.id, resultado.estrelas);
       salvarProgresso(ctx.progresso);
+      sons.vitoria();
       const dica =
         resultado.estrelas < 3 ? ` Dá para fazer com ${this.fase.idealBlocos} linhas e ganhar 3 estrelas.` : '';
       this.mesa.mostrarMensagem(
@@ -232,7 +236,9 @@ export class CruzamentoScene extends Phaser.Scene {
       const faltou = resultado.objetivos
         .filter((o) => !o.cumprido)
         .map((o) => `${descreverObjetivo(o.objetivo)} (teve ${Math.round(o.valor * 10) / 10})`);
-      this.mesa.mostrarMensagem('erro', `Quase! Faltou: ${faltou.join('; ')}. Mude o algoritmo e tente de novo.`);
+      sons.erro();
+      const oQue = this.fase.tipo === 'codigo' ? 'o código' : 'o algoritmo';
+      this.mesa.mostrarMensagem('erro', `Quase! Faltou: ${faltou.join('; ')}. Mude ${oQue} e tente de novo.`);
     }
     this.publicar();
   }
