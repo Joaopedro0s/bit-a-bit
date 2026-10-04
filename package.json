@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "vitest run tests/integration",
-    "build": "vite build && npm run build:version",
+    "build": "vite build && npm run build:version && npm run build:sw",
     "build:version": "node -e \"const fs=require('fs'); const dir='dist'; if(!fs.existsSync(dir)) fs.mkdirSync(dir); fs.writeFileSync('dist/version.json', JSON.stringify({versao: process.env.npm_package_version, sha: process.env.GITHUB_SHA ? process.env.GITHUB_SHA.substring(0,7) : 'local', build: new Date().toISOString()}))\"",
+    "build:sw": "node -e \"require('esbuild').buildSync({entryPoints:['src/sw/sw.ts'],bundle:true,minify:true,format:'iife',target:'es2020',outfile:'dist/sw.js',define:{__VERSAO_SW__:JSON.stringify((process.env.GITHUB_SHA||'local').substring(0,7)+'-'+process.env.npm_package_version+'-'+Date.now())}})\"",
     "lint": "eslint .",
     "test": "vitest run tests/unit tests/integration",
     "test:ci": "vitest run tests/unit tests/integration --coverage --reporter=junit --outputFile=reports/junit.xml",
@@ -24,6 +25,7 @@
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "@vitest/coverage-v8": "^1.3.1",
+    "esbuild": "^0.21.5",
     "eslint": "^8.57.0",
     "typescript": "^5.4.2",
     "typescript-eslint": "^8.71.0",
