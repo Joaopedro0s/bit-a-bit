@@ -1,0 +1,446 @@
+/* Sinal Aberto: layout vertical 9:16, tema escuro de alto contraste. */
+:root {
+  --fundo: #11181c;
+  --superficie: #1c262c;
+  --superficie-2: #26333a;
+  --borda: #3a4a52;
+  --texto: #f2f5f7;
+  --texto-fraco: #b8c4ca;
+  --foco: #ffd54f;
+
+  /* Cores dos blocos (texto escolhido para contraste AA). */
+  --bloco-acao: #2e7d32;      /* verde: abrir/fechar/esperar */
+  --bloco-se: #f9c22e;        /* amarelo: se */
+  --bloco-senao: #ff9a3c;     /* laranja: senão / fim */
+  --bloco-logica: #7b3fa6;    /* roxo: comparações, E/OU */
+  --bloco-variavel: #1e63b8;  /* azul: variáveis */
+
+  --verde: #43a047;
+  --vermelho: #e53935;
+  --azul: #1e63b8;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: var(--texto);
+  background: var(--fundo);
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--fundo);
+  overscroll-behavior: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 500px;
+  margin: 0 auto;
+  background: var(--superficie);
+}
+
+#palco {
+  flex: 0 0 40%;
+  min-height: 0;
+  position: relative;
+  background: #2b3a2f;
+}
+
+#painel {
+  flex: 1 1 60%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+
+button {
+  font: inherit;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- telas (menu, seleção, fim) ---------- */
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.tela h2 {
+  font-size: 1.3rem;
+}
+
+.tela p {
+  color: var(--texto-fraco);
+  line-height: 1.45;
+}
+
+.botao-grande {
+  background: var(--verde);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+
+.botao-secundario {
+  background: var(--superficie-2);
+  color: var(--texto);
+  border-color: var(--borda);
+  padding: 10px 14px;
+}
+
+.versao {
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: var(--texto-fraco);
+  text-align: center;
+}
+
+.lista-fases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.botao-fase {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--superficie-2);
+  color: var(--texto);
+  border-color: var(--borda);
+  text-align: left;
+}
+
+.botao-fase .estrelas {
+  color: var(--foco);
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+.cartao {
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.codigo {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.85rem;
+  background: #0b1114;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  color: #e8f1f5;
+}
+
+/* ---------- Mesa de Programação ---------- */
+.mesa-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mesa-topo h2 {
+  flex: 1;
+  font-size: 1rem;
+}
+
+.botao-voltar {
+  background: transparent;
+  color: var(--texto);
+  border-color: var(--borda);
+  padding: 0 10px;
+}
+
+.objetivos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--texto-fraco);
+}
+
+.objetivos li::before {
+  content: '◎ ';
+}
+
+.objetivos li.ok {
+  color: #9be29f;
+}
+
+.objetivos li.ok::before {
+  content: '✔ ';
+}
+
+.objetivos li.falhou {
+  color: #ff9b97;
+}
+
+.objetivos li.falhou::before {
+  content: '✖ ';
+}
+
+.rotulo {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-fraco);
+}
+
+.gaveta {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  scroll-snap-type: x proximity;
+  flex-shrink: 0;
+}
+
+.bloco {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  padding: 8px 12px;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.bloco.acao { background: var(--bloco-acao); }
+.bloco.se { background: var(--bloco-se); color: #111; }
+.bloco.senao { background: var(--bloco-senao); color: #111; }
+.bloco.logica { background: var(--bloco-logica); }
+.bloco.variavel { background: var(--bloco-variavel); }
+.bloco.controle { background: var(--superficie-2); border-color: var(--borda); }
+
+.algoritmo {
+  flex: 1 1 auto;
+  min-height: 96px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px 6px 6px 36px;
+  background: #0b1114;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.88rem;
+}
+
+.algoritmo li {
+  padding: 4px 6px;
+  margin: 2px 0;
+  border-radius: 6px;
+  border-left: 4px solid transparent;
+  overflow-wrap: anywhere;
+}
+
+.algoritmo li::marker {
+  color: var(--texto-fraco);
+}
+
+.algoritmo li.acao { border-left-color: var(--bloco-acao); }
+.algoritmo li.se { border-left-color: var(--bloco-se); }
+.algoritmo li.senao { border-left-color: var(--bloco-senao); }
+.algoritmo li.variavel { border-left-color: var(--bloco-variavel); }
+
+.algoritmo li.ativa {
+  background: #0f4a7a;
+  outline: 2px solid #64b5f6;
+}
+
+.algoritmo li.erro {
+  background: #6b1512;
+  outline: 2px solid var(--vermelho);
+}
+
+.algoritmo li.rascunho {
+  opacity: 0.85;
+  outline: 2px dashed var(--bloco-se);
+}
+
+.algoritmo .vazio {
+  list-style: none;
+  margin-left: -30px;
+  color: var(--texto-fraco);
+  font-family: inherit;
+}
+
+.barra-acao {
+  display: grid;
+  grid-template-columns: 1.4fr 1.2fr 1fr auto;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.barra-acao button {
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 4px;
+  color: #fff;
+}
+
+.btn-iniciar { background: #2e7d32; }
+.btn-passo { background: #1565c0; }
+.btn-reiniciar { background: #b3261e; }
+.btn-apagar { background: var(--superficie-2); border-color: var(--borda) !important; }
+
+.barra-extra {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.barra-extra button {
+  flex: 1;
+  background: var(--superficie-2);
+  color: var(--texto);
+  border-color: var(--borda);
+  font-size: 0.85rem;
+}
+
+.mensagem {
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mensagem.erro {
+  background: #3d1210;
+  border: 2px solid var(--vermelho);
+}
+
+.mensagem.vitoria {
+  background: #123d17;
+  border: 2px solid var(--verde);
+}
+
+.mensagem.info {
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+}
+
+.mensagem button {
+  align-self: flex-start;
+  padding: 6px 14px;
+  background: var(--texto);
+  color: #111;
+  font-weight: 700;
+}
+
+/* Janela por cima do painel (dica, "Ver em JavaScript"). */
+.janela-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10;
+}
+
+.janela {
+  width: 100%;
+  max-width: 468px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.janela h2 {
+  font-size: 1.15rem;
+}
+
+.janela p {
+  line-height: 1.5;
+  color: var(--texto-fraco);
+}
+
+/* Fase 5: código com partes que mudam ao tocar. */
+.token {
+  font: inherit;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0 6px;
+  margin: 0 1px;
+  border-radius: 6px;
+  background: #4a2a63;
+  color: #fff;
+  border: 2px dashed #d7a8ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
