@@ -1,10 +1,55 @@
-// Provisório: as cenas do Phaser e a Mesa de Programação entram na etapa 3.
-// Por enquanto só validamos as fases ao abrir, para um JSON quebrado aparecer logo.
+// Ponto de entrada: monta o layout (canvas em cima, painel embaixo) e inicia o Phaser.
+
+import './ui/estilos.css';
+import Phaser from 'phaser';
 import dados from './content/fases.json';
 import { carregarFases } from './core/fases';
+import { definirContexto } from './contexto';
+import { carregarProgresso } from './progresso';
+import { BootScene } from './scenes/BootScene';
+import { CruzamentoScene } from './scenes/CruzamentoScene';
+import { FimFaseScene } from './scenes/FimFaseScene';
+import { MenuScene } from './scenes/MenuScene';
+import { SelecaoFasesScene } from './scenes/SelecaoFasesScene';
+import { ALTURA, LARGURA } from './scenes/vistaCruzamento';
+import { ligarHookDeTeste } from './testeHook';
+import { el } from './ui/dom';
 
-const fases = carregarFases(dados);
-const app = document.getElementById('app');
-if (app) {
-  app.textContent = `Sinal Aberto: ${fases.length} fases carregadas. Jogo em construção.`;
+const parametros = new URLSearchParams(window.location.search);
+const modoTeste = parametros.get('teste') === '1';
+if (modoTeste) ligarHookDeTeste();
+
+const app = document.getElementById('app') as HTMLElement;
+const palco = el('div', { id: 'palco', role: 'img', rotulo: 'Cruzamento visto de cima com os carros e os semáforos' });
+const painel = el('main', { id: 'painel' });
+app.replaceChildren(palco, painel);
+
+try {
+  definirContexto({
+    fases: carregarFases(dados),
+    progresso: carregarProgresso(),
+    painel,
+    versao: '',
+    // Nos testes E2E dá para acelerar a simulação com ?vel=N.
+    velocidade: modoTeste ? Math.min(50, Math.max(1, Number(parametros.get('vel')) || 1)) : 1,
+    modoTeste,
+  });
+} catch (erro) {
+  painel.textContent = 'Não foi possível carregar as fases do jogo.';
+  throw erro;
 }
+
+new Phaser.Game({
+  type: Phaser.AUTO,
+  parent: palco,
+  backgroundColor: '#2b3a2f',
+  banner: false,
+  audio: { noAudio: true }, // os sons são sintetizados com Web Audio, fora do Phaser
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: LARGURA,
+    height: ALTURA,
+  },
+  scene: [BootScene, MenuScene, SelecaoFasesScene, CruzamentoScene, FimFaseScene],
+});
