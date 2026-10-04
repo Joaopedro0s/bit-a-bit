@@ -1,10 +1,34 @@
 # Componentes de Terceiros e Licenças
 
-Todas as dependências utilizadas neste projeto possuem licença compatível (MIT, ISC, Apache 2.0).
-As bibliotecas específicas podem ser consultadas no arquivo `package.json` e os relatórios SBOM (`reports/sbom.json`) da nossa esteira de CI.
+Todas as dependências deste projeto têm licenças permissivas e compatíveis (MIT, BSD, Apache 2.0).
+A lista completa, com dependências indiretas, está no SBOM (`reports/sbom.json`) gerado pela esteira de CI.
 
-## Dependências Diretas
-- **AJV**: MIT License
+## Incluídos no jogo publicado
 
-## Arte e Som
-- Todas as artes do jogo foram criadas usando primitivas Canvas 2D pelo próprio código, sem assets externos.
+| Componente | Versão | Licença | Uso |
+| --- | --- | --- | --- |
+| [Phaser](https://phaser.io) | 3.90.0 | MIT | Motor 2D: canvas, animações (tweens) e partículas |
+| eventemitter3 (dependência do Phaser) | 5.0.4 | MIT | Eventos internos do Phaser |
+| [Ajv](https://ajv.js.org) | 8.x | MIT | Validação do `fases.json` pelo schema |
+| fast-deep-equal, json-schema-traverse, require-from-string (dependências do Ajv) | — | MIT | Usadas internamente pelo Ajv |
+| fast-uri (dependência do Ajv) | 3.x | BSD-3-Clause | Usada internamente pelo Ajv |
+
+## Usados só no desenvolvimento e nos testes (não vão para o jogo)
+
+| Componente | Licença |
+| --- | --- |
+| Vite | MIT |
+| vite-plugin-singlefile | MIT |
+| TypeScript | Apache-2.0 |
+| Vitest e @vitest/coverage-v8 | MIT |
+| Playwright (@playwright/test) | Apache-2.0 |
+| ESLint e @eslint/js | MIT |
+| typescript-eslint e @typescript-eslint/eslint-plugin | MIT |
+| @typescript-eslint/parser | BSD-2-Clause |
+| @types/node | MIT |
+
+## Arte, som e textos
+
+- Toda a arte do jogo (pistas, carros, ambulância, semáforos, estrelas, partículas) é desenhada pelo próprio código com formas geométricas do Phaser Graphics. Não há imagens, fontes ou ícones de terceiros.
+- Todos os sons são sintetizados em tempo real com a Web Audio API. Não há arquivos de áudio.
+- O jogo não usa marcas, logos ou personagens existentes. Os textos e as fases foram escritos pela equipe (com apoio de IA, ver `AI-USAGE.md`).
