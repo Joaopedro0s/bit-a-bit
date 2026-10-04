@@ -1,25 +1,13 @@
-// Mesa de Programação (DOM): gaveta de blocos, linhas do algoritmo e barra de ação.
+// Mesa de Programação (fases 1 a 4): gaveta de blocos e linhas do algoritmo.
 // A Mesa só cuida da edição e da aparência; quem roda a simulação é a cena.
 
+import { clique } from '../audio';
 import { logico, type Condicao, type Expressao, type OperadorLogico } from '../core/ast';
 import type { Fase } from '../core/fases';
 import { condicaoParaTexto, linhaParaTexto } from '../core/gerarJs';
-import { descreverObjetivo, type ResultadoObjetivo } from '../core/objetivos';
 import { recuoDasLinhas, type Linha } from '../core/programa';
 import { botao, el } from './dom';
-
-export interface AcoesMesa {
-  iniciar(): void;
-  passo(): void;
-  reiniciar(): void;
-  verJs(): void;
-  velocidade(): void;
-  voltar(): void;
-  /** Chamado sempre que o algoritmo muda. */
-  editou(): void;
-}
-
-export type EstadoMesa = 'editando' | 'rodando' | 'passo' | 'esperando' | 'acabou';
+import { PainelFase, type AcoesPainel } from './painelFase';
 
 interface Rascunho {
   condicao: Condicao | null;
@@ -68,144 +56,43 @@ export function categoria(l: Linha): string {
   }
 }
 
-export class Mesa {
-  linhas: Linha[] = [];
+export class Mesa extends PainelFase {
+  readonly linhas: Linha[] = [];
   private rascunho: Rascunho | null = null;
-  private estado: EstadoMesa = 'editando';
-  private destaque: { linha: number | null; tipo: 'ativa' | 'erro' } = { linha: null, tipo: 'ativa' };
-
-  readonly raiz: HTMLElement;
   private readonly gaveta: HTMLElement;
   private readonly lista: HTMLOListElement;
-  private readonly objetivos: HTMLUListElement;
-  private readonly mensagem: HTMLElement;
-  private readonly anuncio: HTMLElement;
-  private readonly botoes: Record<'iniciar' | 'passo' | 'reiniciar' | 'apagar' | 'verJs' | 'velocidade', HTMLButtonElement>;
 
-  constructor(
-    private readonly fase: Fase,
-    private readonly acoes: AcoesMesa,
-    velocidadeInicial: number,
-  ) {
+  constructor(fase: Fase, acoes: AcoesPainel, velocidadeInicial: number) {
+    super(fase, acoes, velocidadeInicial);
     this.gaveta = el('div', { classe: 'gaveta', role: 'toolbar', rotulo: 'Blocos disponíveis', testid: 'gaveta' });
     this.lista = el('ol', { classe: 'algoritmo', rotulo: 'Seu algoritmo', testid: 'algoritmo' });
-    this.objetivos = el(
-      'ul',
-      { classe: 'objetivos', rotulo: 'Objetivos da fase', testid: 'objetivos' },
-      ...fase.objetivos.map((o) => el('li', {}, descreverObjetivo(o))),
-    );
-    this.mensagem = el('div', { 'aria-live': 'polite' });
-    this.anuncio = el('div', { classe: 'so-leitor', 'aria-live': 'polite' });
-
-    this.botoes = {
-      iniciar: botao('▶ INICIAR TRÁFEGO', () => acoes.iniciar(), { classe: 'btn-iniciar', testid: 'btn-iniciar' }),
-      passo: botao('🔍 PASSO A PASSO', () => acoes.passo(), { classe: 'btn-passo', testid: 'btn-passo' }),
-      reiniciar: botao('↺ REINICIAR', () => acoes.reiniciar(), { classe: 'btn-reiniciar', testid: 'btn-reiniciar' }),
-      apagar: botao('⌫', () => this.apagarUltima(), {
-        classe: 'btn-apagar',
-        testid: 'btn-apagar',
-        rotulo: 'Apagar a última linha',
-        title: 'Apagar a última linha',
-      }),
-      verJs: botao('{ } Ver em JavaScript', () => acoes.verJs(), { testid: 'btn-ver-js' }),
-      velocidade: botao('', () => acoes.velocidade(), { testid: 'btn-velocidade' }),
-    };
-    this.mostrarVelocidade(velocidadeInicial);
-
-    this.raiz = el(
-      'section',
-      { classe: 'mesa', rotulo: 'Mesa de Programação' },
-      el(
-        'div',
-        { classe: 'mesa-topo' },
-        botao('←', () => acoes.voltar(), { classe: 'botao-voltar', testid: 'btn-voltar', rotulo: 'Voltar para as fases' }),
-        el('h2', { testid: 'titulo-fase' }, `Fase ${fase.id}: ${fase.titulo}`),
-      ),
-      this.objetivos,
+    this.montar(
       el('div', { classe: 'rotulo' }, 'Blocos (toque para colocar)'),
       this.gaveta,
       el('div', { classe: 'rotulo' }, 'Seu algoritmo (repete sem parar)'),
       this.lista,
-      this.mensagem,
-      el(
-        'div',
-        { classe: 'barra-acao' },
-        this.botoes.iniciar,
-        this.botoes.passo,
-        this.botoes.reiniciar,
-        this.botoes.apagar,
-      ),
-      el('div', { classe: 'barra-extra' }, this.botoes.verJs, this.botoes.velocidade),
-      this.anuncio,
     );
-    this.raiz.style.display = 'contents';
     this.raiz.addEventListener('keydown', (e) => {
       if ((e.key === 'Backspace' || e.key === 'Delete') && !this.travada()) {
         e.preventDefault();
-        this.apagarUltima();
+        this.apagar();
       }
     });
     this.desenhar();
   }
 
-  // ------------------------------------------------------------ estado
-
-  definirEstado(estado: EstadoMesa): void {
-    this.estado = estado;
-    this.atualizarBotoes();
+  protected areaDasLinhas(): HTMLElement {
+    return this.lista;
   }
 
-  mostrarVelocidade(v: number): void {
-    this.botoes.velocidade.textContent = `⏩ Velocidade ${v}x`;
-  }
-
-  destacarLinha(linha: number | null, tipo: 'ativa' | 'erro' = 'ativa'): void {
-    if (this.destaque.linha === linha && this.destaque.tipo === tipo) return;
-    this.destaque = { linha, tipo };
-    this.lista.querySelectorAll('li.ativa, li.erro').forEach((li) => li.classList.remove('ativa', 'erro'));
-    if (linha === null) return;
-    const li = this.lista.querySelector<HTMLLIElement>(`[data-testid="linha-${linha}"]`);
-    if (!li) return;
-    li.classList.add(tipo);
-    li.scrollIntoView({ block: 'nearest' });
-  }
-
-  marcarObjetivos(resultados: ResultadoObjetivo[] | null): void {
-    [...this.objetivos.children].forEach((li, i) => {
-      li.classList.remove('ok', 'falhou');
-      const r = resultados?.[i];
-      if (r) li.classList.add(r.cumprido ? 'ok' : 'falhou');
-    });
-  }
-
-  mostrarMensagem(
-    tipo: 'erro' | 'vitoria' | 'info',
-    texto: string,
-    acao?: { texto: string; aoClicar: () => void; testid: string },
-  ): void {
-    const testid = tipo === 'erro' ? 'msg-erro' : tipo === 'vitoria' ? 'msg-vitoria' : 'msg-info';
-    const caixa = el(
-      'div',
-      { classe: `mensagem ${tipo}`, testid, role: tipo === 'erro' ? 'alert' : 'status' },
-      el('p', {}, texto),
-      acao && botao(acao.texto, acao.aoClicar, { testid: acao.testid }),
-    );
-    this.mensagem.replaceChildren(caixa);
-    caixa.scrollIntoView({ block: 'nearest' });
-  }
-
-  limparMensagem(): void {
-    this.mensagem.replaceChildren();
+  protected podeRodar(): boolean {
+    return this.linhas.length > 0 && this.rascunho === null;
   }
 
   // ------------------------------------------------------------ edição
 
-  private travada(): boolean {
-    return this.estado === 'rodando' || this.estado === 'passo' || this.estado === 'esperando';
-  }
-
   private alterou(): void {
-    this.destaque = { linha: null, tipo: 'ativa' };
+    this.esquecerDestaque();
     this.desenhar();
     this.acoes.editou();
   }
@@ -213,11 +100,12 @@ export class Mesa {
   private adicionar(linha: Linha): void {
     if (this.travada()) return;
     this.linhas.push(linha);
+    clique();
     this.anuncio.textContent = `Linha ${this.linhas.length}: ${linhaParaTexto(linha)}`;
     this.alterou();
   }
 
-  apagarUltima(): void {
+  protected apagar(): void {
     if (this.travada()) return;
     if (this.rascunho) {
       this.rascunho = null;
@@ -237,9 +125,11 @@ export class Mesa {
       this.adicionar({ tipo: 'SE', condicao: condicoes[0] });
       return;
     }
+    clique();
     this.rascunho = { condicao: null, operador: null };
+    this.anuncio.textContent = 'Escolha a condição do se';
     this.desenhar();
-    (this.gaveta.querySelector('button') as HTMLButtonElement | null)?.focus();
+    this.gaveta.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
   }
 
   private escolherCondicao(c: Condicao): void {
@@ -251,6 +141,7 @@ export class Mesa {
     } else if (!r.condicao) {
       r.condicao = c;
     }
+    clique();
     this.desenhar();
   }
 
@@ -258,6 +149,7 @@ export class Mesa {
     const r = this.rascunho;
     if (!r?.condicao || r.operador) return;
     r.operador = op;
+    clique();
     this.desenhar();
   }
 
@@ -270,8 +162,14 @@ export class Mesa {
 
   // ------------------------------------------------------------ desenho
 
+  protected atualizarBotoes(): void {
+    super.atualizarBotoes();
+    this.botoes.apagar.disabled = this.travada() || (this.linhas.length === 0 && !this.rascunho);
+    if (this.gaveta) this.desenharGaveta();
+  }
+
+  /** Redesenha as linhas e (via atualizarBotoes) a gaveta. */
   private desenhar(): void {
-    this.desenharGaveta();
     this.desenharLinhas();
     this.atualizarBotoes();
   }
@@ -303,7 +201,7 @@ export class Mesa {
       pronto.disabled = precisaCondicao;
       blocos.push(
         pronto,
-        botao('✕ cancelar', () => this.apagarUltima(), { classe: 'bloco controle', testid: 'bloco-cancelar' }),
+        botao('✕ cancelar', () => this.apagar(), { classe: 'bloco controle', testid: 'bloco-cancelar' }),
       );
     } else {
       if (g.condicoes.length > 0) {
@@ -318,8 +216,11 @@ export class Mesa {
         );
       }
     }
-    for (const b of blocos) if (this.travada()) b.disabled = true;
+    if (this.travada()) for (const b of blocos) b.disabled = true;
+    // Mantém o foco do teclado no mesmo bloco depois de redesenhar.
+    const focado = (document.activeElement as HTMLElement | null)?.dataset?.testid;
     this.gaveta.replaceChildren(...blocos);
+    if (focado) this.gaveta.querySelector<HTMLButtonElement>(`[data-testid="${focado}"]`)?.focus();
   }
 
   private desenharLinhas(): void {
@@ -350,25 +251,6 @@ export class Mesa {
       itens.push(el('li', { classe: 'vazio' }, 'Toque nos blocos acima para montar o seu algoritmo.'));
     }
     this.lista.replaceChildren(...itens);
-    if (this.destaque.linha !== null) {
-      const atual = this.destaque;
-      this.destaque = { linha: null, tipo: 'ativa' };
-      this.destacarLinha(atual.linha, atual.tipo);
-    }
-  }
-
-  private atualizarBotoes(): void {
-    const b = this.botoes;
-    const vazio = this.linhas.length === 0;
-    b.iniciar.disabled = vazio || this.estado === 'rodando' || this.rascunho !== null;
-    b.passo.disabled = vazio || this.estado === 'esperando' || this.rascunho !== null;
-    b.apagar.disabled = this.travada() || (vazio && !this.rascunho);
-    b.reiniciar.disabled = false;
-    this.gaveta.querySelectorAll('button').forEach((botaoGaveta) => {
-      if (this.travada()) botaoGaveta.disabled = true;
-    });
-    if (!this.travada() && this.gaveta.querySelector('button:disabled') && !this.rascunho) {
-      this.desenharGaveta();
-    }
+    this.reaplicarDestaque();
   }
 }
