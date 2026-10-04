@@ -1,7 +1,7 @@
 {
-  "name": "bit-a-bit",
-  "version": "0.1.0",
-  "description": "Jogo educativo de lógica de programação para o concurso Framework Arcade",
+  "name": "sinal-aberto",
+  "version": "0.2.0",
+  "description": "Sinal Aberto – O Controlador de Trânsito: jogo educativo de lógica de programação para celular (concurso Framework Arcade)",
   "type": "module",
   "scripts": {
     "dev": "vite",
