@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "vitest run tests/integration",
     "build": "vite build && npm run build:version",
     "build:version": "node -e \"const fs=require('fs'); const dir='dist'; if(!fs.existsSync(dir)) fs.mkdirSync(dir); fs.writeFileSync('dist/version.json', JSON.stringify({versao: process.env.npm_package_version, sha: process.env.GITHUB_SHA ? process.env.GITHUB_SHA.substring(0,7) : 'local', build: new Date().toISOString()}))\"",
     "lint": "eslint .",
