@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Status - Bit a Bit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Painel de Status e Observabilidade</h1>
+  <div id="metrics">Carregando métricas...</div>
+  <script>
+    async function loadMetrics() {
+      try {
+        const res = await fetch('dora.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Falha');
+        const metrics = await res.json();
+        document.getElementById('metrics').innerHTML = `
+          <ul>
+            <li>Frequência de Deploy: ${metrics.deploymentFrequency}</li>
+            <li>Lead Time: ${metrics.leadTimeForChanges}</li>
+            <li>Taxa de Falha: ${metrics.changeFailureRate}</li>
+          </ul>
+        `;
+      } catch (err) {
+        document.getElementById('metrics').innerText = 'Erro ao carregar métricas.';
+      }
+    }
+    loadMetrics();
+  </script>
+</body>
+</html>

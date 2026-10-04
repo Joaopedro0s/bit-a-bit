@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bit a Bit</title>
+    <style>
+      body { font-family: sans-serif; text-align: center; margin: 20px; }
+      button { padding: 10px 15px; font-size: 16px; margin: 5px; cursor: pointer; min-width: 44px; min-height: 44px; }
+      #programa { min-height: 50px; background: #eee; padding: 10px; margin: 10px 0; border-radius: 8px; }
+      #programa span { display: inline-block; background: #333; color: #fff; padding: 5px; margin: 2px; border-radius: 4px; }
+    </style>
+    <script type="module" crossorigin>(function(){const a=document.createElement("link").relList;if(a&&a.supports&&a.supports("modulepreload"))return;for(const e of document.querySelectorAll('link[rel="modulepreload"]'))s(e);new MutationObserver(e=>{for(const t of e)if(t.type==="childList")for(const i of t.addedNodes)i.tagName==="LINK"&&i.rel==="modulepreload"&&s(i)}).observe(document,{childList:!0,subtree:!0});function r(e){const t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin==="use-credentials"?t.credentials="include":e.crossOrigin==="anonymous"?t.credentials="omit":t.credentials="same-origin",t}function s(e){if(e.ep)return;e.ep=!0;const t=r(e);fetch(e.href,t)}})();const c=[{id:1,conceito:"Sequência",dica:"Use os blocos para fazer o robô andar até o chip.",mapa:[[0,0,0,0],[0,1,1,2],[0,0,0,0]],startPos:{x:1,y:1,dir:0},chips:1,ideal:3,solucao:["andar","andar","pegar"]},{id:2,conceito:"Ordem e Curvas",dica:"Lembre-se de virar antes de bater na parede!",mapa:[[0,0,0,0],[0,1,1,0],[0,0,2,0]],startPos:{x:1,y:1,dir:0},chips:1,ideal:4,solucao:["andar","virar-direita","andar","pegar"]}];class u{state;maxPassos=100;constructor(a){this.state=JSON.parse(JSON.stringify(a))}step(a,r){if(this.state.status!=="playing")return;let{x:s,y:e,dir:t}=this.state.pos;if(a==="virar-esquerda")t=(t+3)%4;else if(a==="virar-direita")t=(t+1)%4;else if(a==="andar")t===0&&s++,t===1&&e++,t===2&&s--,t===3&&e--;else if(a==="pegar")if(this.state.mapa[e]&&this.state.mapa[e][s]===2)this.state.chipsColetados++,this.state.mapa[e][s]=1;else{this.state.status="lose",this.state.erroIndex=r;return}(e<0||e>=this.state.mapa.length||s<0||s>=this.state.mapa[e].length||this.state.mapa[e][s]===0)&&(this.state.status="lose",this.state.erroIndex=r),this.state.pos={x:s,y:e,dir:t}}run(a,r){if(a.length>this.maxPassos)return this.state.status="lose",this.state;for(let s=0;s<a.length&&(this.step(a[s],s),this.state.status==="playing");s++);return this.state.status==="playing"&&(this.state.chipsColetados===r?this.state.status="win":this.state.status="lose"),this.state}}function p(d,a){return d<=a?3:d<=a+2?2:1}class f{faseIndex=0;fases=c;programa=[];async init(){await this.renderMenu()}async renderMenu(){let a="local";try{const s=await fetch("/version.json");s.ok&&(a=(await s.json()).sha||a)}catch{}const r=document.getElementById("app");r.innerHTML=`
+      <h1>Bit a Bit</h1>
+      <p style="font-size: 0.8em; color: gray;">Versão: ${a}</p>
+      <button data-testid="btn-jogar">Jogar Fase 1</button>
+    `,r.querySelector("button")?.addEventListener("click",()=>{this.faseIndex=0,this.renderFase()})}renderFase(){this.programa=[];const a=this.fases[this.faseIndex],r=document.getElementById("app");r.innerHTML=`
+      <h2>Fase ${a.id} - ${a.conceito}</h2>
+      <p>${a.dica}</p>
+      <canvas id="grade" width="400" height="300" style="border: 1px solid black;"></canvas>
+      <div id="blocos">
+        <button data-testid="bloco-andar" data-cmd="andar">Andar</button>
+        <button data-testid="bloco-esq" data-cmd="virar-esquerda">Esquerda</button>
+        <button data-testid="bloco-dir" data-cmd="virar-direita">Direita</button>
+        <button data-testid="bloco-pegar" data-cmd="pegar">Pegar</button>
+      </div>
+      <div id="programa"></div>
+      <button data-testid="btn-executar">Executar</button>
+      <button data-testid="btn-limpar">Limpar</button>
+      <div id="mensagem" style="margin-top: 15px; font-weight: bold;"></div>
+    `,document.querySelectorAll("#blocos button").forEach(s=>{s.addEventListener("click",e=>{const t=e.target.dataset.cmd;this.programa.push(t),this.updateProgramaUI()})}),document.querySelector('[data-testid="btn-executar"]')?.addEventListener("click",()=>{this.executarPrograma()}),document.querySelector('[data-testid="btn-limpar"]')?.addEventListener("click",()=>{this.programa=[],this.updateProgramaUI();const s=document.getElementById("mensagem");s&&(s.innerHTML="")}),this.drawGrade(a.startPos,a.mapa)}updateProgramaUI(a=-1,r=-1){const s=document.getElementById("programa");s.innerHTML=this.programa.map((e,t)=>{let i="#333";return t===r?i="red":t===a&&(i="blue"),`<span data-testid="prog-${t}" style="background: ${i}; color: white; display: inline-block; padding: 5px; margin: 2px; border-radius: 4px;">[${e}]</span>`}).join(" ")}drawGrade(a,r){const s=document.getElementById("grade");if(!s)return;const e=s.getContext("2d");e.clearRect(0,0,s.width,s.height);const t=50;for(let n=0;n<r.length;n++)for(let o=0;o<r[n].length;o++)r[n][o]===0?e.fillStyle="#ccc":r[n][o]===1?e.fillStyle="#fff":r[n][o]===2&&(e.fillStyle="#ff0"),e.fillRect(o*t,n*t,t,t),e.strokeRect(o*t,n*t,t,t);e.fillStyle="#00f",e.beginPath(),e.arc(a.x*t+t/2,a.y*t+t/2,15,0,Math.PI*2),e.fill(),e.fillStyle="#f00";let i=a.x*t+t/2,l=a.y*t+t/2;a.dir===0&&(i+=10),a.dir===1&&(l+=10),a.dir===2&&(i-=10),a.dir===3&&(l-=10),e.fillRect(i-2,l-2,4,4)}async executarPrograma(){const a=this.fases[this.faseIndex],r={pos:{...a.startPos},chipsColetados:0,mapa:JSON.parse(JSON.stringify(a.mapa)),status:"playing"},s=new u(r),e=document.getElementById("mensagem");e.innerHTML="";for(let t=0;t<this.programa.length&&(this.updateProgramaUI(t),s.step(this.programa[t],t),this.drawGrade(s.state.pos,s.state.mapa),await new Promise(i=>setTimeout(i,500)),s.state.status==="playing");t++);if(s.state.status==="playing"&&(s.state.chipsColetados===a.chips?s.state.status="win":s.state.status="lose"),this.updateProgramaUI(-1,s.state.status==="lose"?s.state.erroIndex:-1),s.state.status==="win"){const t=p(this.programa.length,a.ideal);e.innerHTML=`<span style="color: green;" data-testid="msg-vitoria">Você venceu! Estrelas: ${t}</span>`,setTimeout(()=>{document.getElementById("app").innerHTML=`
+          <h2>Fase Concluída!</h2>
+          <p>Estrelas: ${t}</p>
+          <button data-testid="btn-proxima">Próxima Fase</button>
+        `,document.querySelector('[data-testid="btn-proxima"]')?.addEventListener("click",()=>{this.faseIndex++,this.faseIndex<this.fases.length?this.renderFase():document.getElementById("app").innerHTML='<h2 data-testid="tela-fim">Fim de Jogo! Parabéns!</h2>'})},1e3)}else e.innerHTML=`<span style="color: red;" data-testid="msg-derrota">Você perdeu. ${s.state.erroIndex!==void 0?`Falha no bloco ${s.state.erroIndex}.`:"Tente novamente."}</span>`,setTimeout(()=>{this.drawGrade(a.startPos,a.mapa),this.updateProgramaUI(),e.innerHTML=""},2e3)}}const h=new f;h.init();</script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
