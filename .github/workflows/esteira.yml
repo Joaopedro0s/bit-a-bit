@@ -111,7 +111,11 @@ jobs:
           INTERVAL=10
           ELAPSED=0
           TARGET_SHA="${{ env.SHORT_SHA }}"
-          URL="${{ vars.SITE_URL }}/hml/version.json"
+          SITE_URL="${{ vars.SITE_URL }}"
+          if [ -z "$SITE_URL" ]; then
+            SITE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          fi
+          URL="$SITE_URL/hml/version.json"
           
           while [ $ELAPSED -lt $TIMEOUT ]; do
             RES=$(curl -s $URL || echo "{}")
@@ -120,7 +124,7 @@ jobs:
               echo "Pages atualizado!"
               exit 0
             fi
-            echo "Aguardando Pages (atual: $FETCHED_SHA, esperado: $TARGET_SHA)..."
+            echo "Aguardando Pages (atual: $FETCHED_SHA, esperado: $TARGET_SHA)... no URL $URL"
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
           done
@@ -129,8 +133,12 @@ jobs:
 
       - name: Testes E2E HML
         env:
-          BASE_URL: ${{ vars.SITE_URL }}/hml/
+          SITE_URL: ${{ vars.SITE_URL }}
         run: |
+          if [ -z "$SITE_URL" ]; then
+            SITE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          fi
+          export BASE_URL="$SITE_URL/hml/"
           npm ci
           npx playwright install --with-deps chromium
           npm run test:e2e
@@ -161,8 +169,12 @@ jobs:
 
       - name: Testes E2E Smoke (Produção)
         env:
-          BASE_URL: ${{ vars.SITE_URL }}/releases/${{ env.SHORT_SHA }}/
+          SITE_URL: ${{ vars.SITE_URL }}
         run: |
+          if [ -z "$SITE_URL" ]; then
+            SITE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          fi
+          export BASE_URL="$SITE_URL/releases/${{ env.SHORT_SHA }}/"
           npm ci
           npx playwright install --with-deps chromium
           npx playwright test tests/e2e/smoke.spec.ts
