@@ -1,30 +1,402 @@
 [
   {
     "id": 1,
-    "conceito": "Sequência",
-    "dica": "Use os blocos para fazer o robô andar até o chip.",
-    "mapa": [
-      [0, 0, 0, 0],
-      [0, 1, 1, 2],
-      [0, 0, 0, 0]
+    "titulo": "Uma coisa de cada vez",
+    "conceito": "Sequência: o computador segue as instruções em ordem, de cima para baixo.",
+    "dica": "Os carros do Norte e do Leste se cruzam no meio. Abra um sinal, espere os carros passarem, feche, e só depois abra o outro.",
+    "revelacao": "Isso que você montou é um algoritmo: uma lista de passos em ordem. Todo programa começa assim.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 40,
+      "semente": 11,
+      "chegadas": {
+        "Norte": [{ "de": 0, "ate": 40, "taxa": 0.25 }],
+        "Leste": [{ "de": 0, "ate": 40, "taxa": 0.25 }]
+      },
+      "filaInicial": { "Norte": 3, "Leste": 3 }
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "carrosQuePassaram", "minimo": 20 },
+      { "tipo": "maiorFila", "maximo": 8 }
     ],
-    "startPos": { "x": 1, "y": 1, "dir": 0 },
-    "chips": 1,
-    "ideal": 3,
-    "solucao": ["andar", "andar", "pegar"]
+    "idealBlocos": 6,
+    "gaveta": {
+      "linhas": [
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } }
+      ],
+      "condicoes": [],
+      "operadores": []
+    },
+    "solucao": [
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } },
+      { "tipo": "FECHAR", "via": "Leste" }
+    ],
+    "solucaoErrada": [
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } }
+    ]
   },
   {
     "id": 2,
-    "conceito": "Ordem e Curvas",
-    "dica": "Lembre-se de virar antes de bater na parede!",
-    "mapa": [
-      [0, 0, 0, 0],
-      [0, 1, 1, 0],
-      [0, 0, 2, 0]
+    "titulo": "Só se tiver carro",
+    "conceito": "Condição (if): o programa só faz uma coisa SE algo for verdade.",
+    "dica": "Hoje a via Leste está vazia. Abrir o sinal sem nenhum carro faz os pedestres esperarem à toa. Use o bloco \"se\" para abrir o Norte só quando tiver carro.",
+    "revelacao": "Isso que você montou é um if. Todo app que você usa toma decisões assim.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 50,
+      "semente": 22,
+      "chegadas": {
+        "Norte": [
+          { "de": 0, "ate": 8, "taxa": 0.5 },
+          { "de": 22, "ate": 30, "taxa": 0.5 }
+        ]
+      },
+      "filaInicial": { "Norte": 2 }
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "carrosQuePassaram", "minimo": 10 },
+      { "tipo": "tempoAbertoSemCarros", "maximo": 5 }
     ],
-    "startPos": { "x": 1, "y": 1, "dir": 0 },
-    "chips": 1,
-    "ideal": 4,
-    "solucao": ["andar", "virar-direita", "andar", "pegar"]
+    "idealBlocos": 6,
+    "gaveta": {
+      "linhas": [
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 1 } },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } },
+        { "tipo": "FIM" }
+      ],
+      "condicoes": [
+        {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "op": ">",
+          "dir": { "tipo": "NUM", "valor": 0 }
+        }
+      ],
+      "operadores": []
+    },
+    "solucao": [
+      {
+        "tipo": "SE",
+        "condicao": {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "op": ">",
+          "dir": { "tipo": "NUM", "valor": 0 }
+        }
+      },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "FIM" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 1 } }
+    ],
+    "solucaoErrada": [
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } }
+    ]
+  },
+  {
+    "id": 3,
+    "titulo": "Abre caminho!",
+    "conceito": "Se/senão (if/else) e OU: escolher entre dois caminhos e juntar duas condições.",
+    "dica": "Uma ambulância vai chegar pelo Leste. Dê verde ao Leste SE tiver ambulância OU se a fila do Leste ficar grande. SENÃO, o Norte passa. Feche um sinal antes de abrir o outro.",
+    "revelacao": "Isso é um if/else com OU (||). Jogos, bancos e redes sociais usam isso o tempo todo para decidir o que fazer.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 60,
+      "semente": 11,
+      "chegadas": {
+        "Norte": [{ "de": 0, "ate": 60, "taxa": 0.3 }],
+        "Leste": [{ "de": 0, "ate": 60, "taxa": 0.25 }]
+      },
+      "filaInicial": { "Norte": 2, "Leste": 1 },
+      "ambulancias": [
+        { "via": "Leste", "tempo": 8 },
+        { "via": "Leste", "tempo": 38 }
+      ]
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "esperaMaxAmbulancia", "maximo": 2 },
+      { "tipo": "maiorFila", "maximo": 9 }
+    ],
+    "idealBlocos": 8,
+    "gaveta": {
+      "linhas": [
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 2 } },
+        { "tipo": "SENAO" },
+        { "tipo": "FIM" }
+      ],
+      "condicoes": [
+        {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "ambulanciaLeste" },
+          "op": "==",
+          "dir": { "tipo": "BOOL", "valor": true }
+        },
+        {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "carrosLeste" },
+          "op": ">",
+          "dir": { "tipo": "NUM", "valor": 5 }
+        }
+      ],
+      "operadores": ["OR", "AND"]
+    },
+    "solucao": [
+      {
+        "tipo": "SE",
+        "condicao": {
+          "tipo": "LOGICO",
+          "op": "OR",
+          "esq": {
+            "tipo": "CMP",
+            "esq": { "tipo": "VAR", "nome": "ambulanciaLeste" },
+            "op": "==",
+            "dir": { "tipo": "BOOL", "valor": true }
+          },
+          "dir": {
+            "tipo": "CMP",
+            "esq": { "tipo": "VAR", "nome": "carrosLeste" },
+            "op": ">",
+            "dir": { "tipo": "NUM", "valor": 5 }
+          }
+        }
+      },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "SENAO" },
+      { "tipo": "FECHAR", "via": "Leste" },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "FIM" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 2 } }
+    ],
+    "solucaoErrada": [
+      {
+        "tipo": "SE",
+        "condicao": {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "ambulanciaLeste" },
+          "op": "==",
+          "dir": { "tipo": "BOOL", "valor": true }
+        }
+      },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "SENAO" },
+      { "tipo": "FECHAR", "via": "Leste" },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "FIM" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 2 } }
+    ]
+  },
+  {
+    "id": 4,
+    "titulo": "Tempo na medida",
+    "conceito": "Variável: uma caixinha com nome que guarda um valor que pode mudar.",
+    "dica": "O Norte tem horas de muito movimento e horas calmas. Em vez de um tempo fixo, guarde o tempo de verde numa variável: tempoVerde = carrosNorte × 1,5.",
+    "revelacao": "tempoVerde é uma variável. Jogos guardam pontos e vidas em variáveis assim, e apps guardam suas mensagens.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 60,
+      "semente": 11,
+      "chegadas": {
+        "Norte": [
+          { "de": 0, "ate": 15, "taxa": 0.7 },
+          { "de": 15, "ate": 35, "taxa": 0.1 },
+          { "de": 35, "ate": 50, "taxa": 0.7 },
+          { "de": 50, "ate": 60, "taxa": 0.1 }
+        ],
+        "Leste": [{ "de": 0, "ate": 60, "taxa": 0.3 }]
+      },
+      "filaInicial": { "Norte": 5, "Leste": 1 }
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "maiorFila", "maximo": 8 },
+      { "tipo": "tempoAbertoSemCarros", "maximo": 6 }
+    ],
+    "idealBlocos": 7,
+    "gaveta": {
+      "linhas": [
+        {
+          "tipo": "ATRIBUIR",
+          "variavel": "tempoVerde",
+          "valor": {
+            "tipo": "BIN",
+            "op": "*",
+            "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+            "dir": { "tipo": "NUM", "valor": 1.5 }
+          }
+        },
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "VAR", "nome": "tempoVerde" } },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } }
+      ],
+      "condicoes": [],
+      "operadores": []
+    },
+    "solucao": [
+      {
+        "tipo": "ATRIBUIR",
+        "variavel": "tempoVerde",
+        "valor": {
+          "tipo": "BIN",
+          "op": "*",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "dir": { "tipo": "NUM", "valor": 1.5 }
+        }
+      },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "VAR", "nome": "tempoVerde" } },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } },
+      { "tipo": "FECHAR", "via": "Leste" }
+    ],
+    "solucaoErrada": [
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 3 } },
+      { "tipo": "FECHAR", "via": "Leste" }
+    ]
+  },
+  {
+    "id": 5,
+    "titulo": "Código de verdade",
+    "conceito": "Ler e consertar código: o mesmo raciocínio dos blocos, escrito em JavaScript.",
+    "dica": "Este controlador está escrito em JavaScript de verdade, mas tem UM erro e a fila do Leste não para de crescer. Toque nas partes destacadas para trocar e descubra o que está errado.",
+    "revelacao": "Programadores passam boa parte do dia lendo código e caçando erros, exatamente como você acabou de fazer.",
+    "tipo": "codigo",
+    "transito": {
+      "duracao": 60,
+      "semente": 22,
+      "chegadas": {
+        "Norte": [{ "de": 0, "ate": 60, "taxa": 0.3 }],
+        "Leste": [{ "de": 0, "ate": 60, "taxa": 0.3 }]
+      },
+      "filaInicial": { "Norte": 2, "Leste": 2 },
+      "ambulancias": [{ "via": "Leste", "tempo": 15 }]
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "esperaMaxAmbulancia", "maximo": 3 },
+      { "tipo": "maiorFila", "maximo": 10 }
+    ],
+    "idealBlocos": 8,
+    "codigo": {
+      "linhasIniciais": [
+        {
+          "tipo": "SE",
+          "condicao": {
+            "tipo": "LOGICO",
+            "op": "OR",
+            "esq": {
+              "tipo": "CMP",
+              "esq": { "tipo": "VAR", "nome": "ambulanciaLeste" },
+              "op": "==",
+              "dir": { "tipo": "BOOL", "valor": true }
+            },
+            "dir": {
+              "tipo": "CMP",
+              "esq": { "tipo": "VAR", "nome": "carrosLeste" },
+              "op": "<",
+              "dir": { "tipo": "NUM", "valor": 4 }
+            }
+          }
+        },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "SENAO" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FIM" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 1 } }
+      ],
+      "tokens": [
+        { "id": "comparador", "caminho": [0, "condicao", "dir", "op"], "opcoes": ["<", ">", "=="] },
+        { "id": "numero", "caminho": [0, "condicao", "dir", "dir", "valor"], "opcoes": [2, 4, 6] },
+        { "id": "via", "caminho": [1, "via"], "opcoes": ["Norte", "Leste"] }
+      ]
+    },
+    "solucao": [
+      {
+        "tipo": "SE",
+        "condicao": {
+          "tipo": "LOGICO",
+          "op": "OR",
+          "esq": {
+            "tipo": "CMP",
+            "esq": { "tipo": "VAR", "nome": "ambulanciaLeste" },
+            "op": "==",
+            "dir": { "tipo": "BOOL", "valor": true }
+          },
+          "dir": {
+            "tipo": "CMP",
+            "esq": { "tipo": "VAR", "nome": "carrosLeste" },
+            "op": ">",
+            "dir": { "tipo": "NUM", "valor": 4 }
+          }
+        }
+      },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "SENAO" },
+      { "tipo": "FECHAR", "via": "Leste" },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "FIM" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 1 } }
+    ],
+    "solucaoErrada": [
+      {
+        "tipo": "SE",
+        "condicao": {
+          "tipo": "LOGICO",
+          "op": "OR",
+          "esq": {
+            "tipo": "CMP",
+            "esq": { "tipo": "VAR", "nome": "ambulanciaLeste" },
+            "op": "==",
+            "dir": { "tipo": "BOOL", "valor": true }
+          },
+          "dir": {
+            "tipo": "CMP",
+            "esq": { "tipo": "VAR", "nome": "carrosLeste" },
+            "op": "<",
+            "dir": { "tipo": "NUM", "valor": 4 }
+          }
+        }
+      },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "SENAO" },
+      { "tipo": "FECHAR", "via": "Leste" },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "FIM" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 1 } }
+    ]
   }
 ]

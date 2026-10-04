@@ -1,30 +1,247 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fases do Sinal Aberto",
   "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "id": { "type": "number" },
-      "conceito": { "type": "string" },
-      "dica": { "type": "string" },
-      "mapa": {
-        "type": "array",
-        "items": {
+  "minItems": 1,
+  "items": { "$ref": "#/definitions/fase" },
+  "definitions": {
+    "via": { "enum": ["Norte", "Leste"] },
+    "nomeVariavel": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9]*$" },
+    "expressao": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "NUM" }, "valor": { "type": "number" } },
+          "required": ["tipo", "valor"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "BOOL" }, "valor": { "type": "boolean" } },
+          "required": ["tipo", "valor"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "VAR" }, "nome": { "$ref": "#/definitions/nomeVariavel" } },
+          "required": ["tipo", "nome"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": { "const": "BIN" },
+            "op": { "enum": ["+", "-", "*"] },
+            "esq": { "$ref": "#/definitions/expressao" },
+            "dir": { "$ref": "#/definitions/expressao" }
+          },
+          "required": ["tipo", "op", "esq", "dir"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "comparacao": {
+      "type": "object",
+      "properties": {
+        "tipo": { "const": "CMP" },
+        "esq": { "$ref": "#/definitions/expressao" },
+        "op": { "enum": [">", "<", "=="] },
+        "dir": { "$ref": "#/definitions/expressao" }
+      },
+      "required": ["tipo", "esq", "op", "dir"],
+      "additionalProperties": false
+    },
+    "condicao": {
+      "oneOf": [
+        { "$ref": "#/definitions/comparacao" },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": { "const": "LOGICO" },
+            "op": { "enum": ["AND", "OR"] },
+            "esq": { "$ref": "#/definitions/condicao" },
+            "dir": { "$ref": "#/definitions/condicao" }
+          },
+          "required": ["tipo", "op", "esq", "dir"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "linha": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": { "tipo": { "enum": ["ABRIR", "FECHAR"] }, "via": { "$ref": "#/definitions/via" } },
+          "required": ["tipo", "via"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "ESPERAR" }, "duracao": { "$ref": "#/definitions/expressao" } },
+          "required": ["tipo", "duracao"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": { "const": "ATRIBUIR" },
+            "variavel": { "$ref": "#/definitions/nomeVariavel" },
+            "valor": { "$ref": "#/definitions/expressao" }
+          },
+          "required": ["tipo", "variavel", "valor"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "SE" }, "condicao": { "$ref": "#/definitions/condicao" } },
+          "required": ["tipo", "condicao"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "tipo": { "enum": ["SENAO", "FIM"] } },
+          "required": ["tipo"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "linhas": { "type": "array", "items": { "$ref": "#/definitions/linha" } },
+    "periodo": {
+      "type": "object",
+      "properties": {
+        "de": { "type": "number", "minimum": 0 },
+        "ate": { "type": "number", "minimum": 0 },
+        "taxa": { "type": "number", "minimum": 0, "maximum": 10 }
+      },
+      "required": ["de", "ate", "taxa"],
+      "additionalProperties": false
+    },
+    "transito": {
+      "type": "object",
+      "properties": {
+        "duracao": { "type": "number", "exclusiveMinimum": 0, "maximum": 300 },
+        "semente": { "type": "integer", "minimum": 0 },
+        "chegadas": {
+          "type": "object",
+          "properties": {
+            "Norte": { "type": "array", "items": { "$ref": "#/definitions/periodo" } },
+            "Leste": { "type": "array", "items": { "$ref": "#/definitions/periodo" } }
+          },
+          "additionalProperties": false
+        },
+        "filaInicial": {
+          "type": "object",
+          "properties": {
+            "Norte": { "type": "integer", "minimum": 0 },
+            "Leste": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "ambulancias": {
           "type": "array",
-          "items": { "type": "number" }
+          "items": {
+            "type": "object",
+            "properties": { "via": { "$ref": "#/definitions/via" }, "tempo": { "type": "number", "minimum": 0 } },
+            "required": ["via", "tempo"],
+            "additionalProperties": false
+          }
         }
       },
-      "startPos": {
-        "type": "object",
-        "properties": {
-          "x": { "type": "number" },
-          "y": { "type": "number" },
-          "dir": { "type": "number" }
-        },
-        "required": ["x", "y", "dir"]
-      },
-      "chips": { "type": "number" }
+      "required": ["duracao", "semente", "chegadas"],
+      "additionalProperties": false
     },
-    "required": ["id", "conceito", "dica", "mapa", "startPos", "chips"]
+    "objetivo": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "semColisao" } },
+          "required": ["tipo"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "tipo": { "const": "carrosQuePassaram" }, "minimo": { "type": "integer", "minimum": 1 } },
+          "required": ["tipo", "minimo"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": { "enum": ["maiorFila", "esperaMaxAmbulancia", "tempoAbertoSemCarros"] },
+            "maximo": { "type": "number", "minimum": 0 }
+          },
+          "required": ["tipo", "maximo"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "gaveta": {
+      "type": "object",
+      "properties": {
+        "linhas": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/linha" } },
+        "condicoes": { "type": "array", "items": { "$ref": "#/definitions/comparacao" } },
+        "operadores": { "type": "array", "items": { "enum": ["AND", "OR"] } }
+      },
+      "required": ["linhas", "condicoes", "operadores"],
+      "additionalProperties": false
+    },
+    "token": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "caminho": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": ["string", "integer"] }
+        },
+        "opcoes": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": ["string", "number", "boolean"] }
+        }
+      },
+      "required": ["id", "caminho", "opcoes"],
+      "additionalProperties": false
+    },
+    "fase": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "titulo": { "type": "string", "minLength": 1 },
+        "conceito": { "type": "string", "minLength": 1 },
+        "dica": { "type": "string", "minLength": 1 },
+        "revelacao": { "type": "string", "minLength": 1 },
+        "tipo": { "enum": ["blocos", "codigo"] },
+        "transito": { "$ref": "#/definitions/transito" },
+        "objetivos": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/objetivo" } },
+        "idealBlocos": { "type": "integer", "minimum": 1 },
+        "gaveta": { "$ref": "#/definitions/gaveta" },
+        "codigo": {
+          "type": "object",
+          "properties": {
+            "linhasIniciais": { "$ref": "#/definitions/linhas" },
+            "tokens": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/token" } }
+          },
+          "required": ["linhasIniciais", "tokens"],
+          "additionalProperties": false
+        },
+        "solucao": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/linha" } },
+        "solucaoErrada": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/linha" } }
+      },
+      "required": [
+        "id",
+        "titulo",
+        "conceito",
+        "dica",
+        "revelacao",
+        "tipo",
+        "transito",
+        "objetivos",
+        "idealBlocos",
+        "solucao",
+        "solucaoErrada"
+      ],
+      "additionalProperties": false
+    }
   }
 }
