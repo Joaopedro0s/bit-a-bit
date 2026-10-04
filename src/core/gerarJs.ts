@@ -2,9 +2,11 @@
 // e JavaScript de verdade (botão "{ } Ver em JavaScript"). Só gera texto; nunca executa.
 
 import type { Condicao, Expressao, Instrucao, OperadorMatematico } from './ast';
-import type { Linha } from './programa';
+import { recuoDasLinhas, type Linha } from './programa';
 
 export type Dialeto = 'bloco' | 'js';
+
+const COMENTARIO_LOOP = '// O cruzamento repete este código enquanto a fase durar.';
 
 const PRECEDENCIA: Record<OperadorMatematico, number> = { '+': 1, '-': 1, '*': 2 };
 
@@ -118,9 +120,124 @@ export function gerarJs(programa: readonly Instrucao[]): string {
   if (nomes.length > 0) {
     saida.push(...nomes.map((n) => `let ${n};`), '');
   }
-  saida.push('// O cruzamento repete este código enquanto a fase durar.');
+  saida.push(COMENTARIO_LOOP);
   saida.push('while (true) {');
   saida.push(...instrucoesJs(programa, '  '));
   saida.push('}');
   return saida.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// JavaScript "marcado" para a fase 5: o mesmo texto do gerarJs, mas cada pedaço
+// editável sabe onde fica nas linhas (caminho), para virar um botão tocável.
+
+export type Caminho = (string | number)[];
+
+export interface Segmento {
+  texto: string;
+  /** id do token editável, se este pedaço puder ser trocado pelo jogador. */
+  token?: string;
+}
+
+export interface LinhaDeCodigo {
+  /** Número da linha na Mesa (1, 2, ...) ou null para cabeçalho/rodapé. */
+  linha: number | null;
+  segmentos: Segmento[];
+}
+
+class Montador {
+  segmentos: Segmento[] = [];
+  constructor(private readonly tokens: ReadonlyMap<string, string>) {}
+
+  texto(t: string): this {
+    const ultimo = this.segmentos[this.segmentos.length - 1];
+    if (ultimo && !ultimo.token) ultimo.texto += t;
+    else this.segmentos.push({ texto: t });
+    return this;
+  }
+
+  valor(caminho: Caminho, t: string): this {
+    const token = this.tokens.get(JSON.stringify(caminho));
+    if (!token) return this.texto(t);
+    this.segmentos.push({ texto: t, token });
+    return this;
+  }
+
+  expressao(e: Expressao, c: Caminho, precedenciaPai = 0, direita = false, opPai?: OperadorMatematico): this {
+    switch (e.tipo) {
+      case 'NUM':
+      case 'BOOL':
+        return this.valor([...c, 'valor'], textoValor(e.valor, 'js'));
+      case 'VAR':
+        return this.valor([...c, 'nome'], e.nome);
+      case 'BIN': {
+        const p = PRECEDENCIA[e.op];
+        const parenteses = p < precedenciaPai || (direita && p === precedenciaPai && opPai === '-');
+        if (parenteses) this.texto('(');
+        this.expressao(e.esq, [...c, 'esq'], p, false, e.op);
+        this.texto(` ${e.op} `);
+        this.expressao(e.dir, [...c, 'dir'], p, true, e.op);
+        if (parenteses) this.texto(')');
+        return this;
+      }
+    }
+  }
+
+  condicao(cond: Condicao, c: Caminho, opPai?: string): this {
+    if (cond.tipo === 'CMP') {
+      this.expressao(cond.esq, [...c, 'esq']).texto(' ');
+      this.valor([...c, 'op'], cond.op === '==' ? '===' : cond.op);
+      return this.texto(' ').expressao(cond.dir, [...c, 'dir']);
+    }
+    const parenteses = opPai !== undefined && opPai !== cond.op;
+    if (parenteses) this.texto('(');
+    this.condicao(cond.esq, [...c, 'esq'], cond.op);
+    this.texto(cond.op === 'AND' ? ' && ' : ' || ');
+    this.condicao(cond.dir, [...c, 'dir'], cond.op);
+    if (parenteses) this.texto(')');
+    return this;
+  }
+}
+
+/** Mesmo JavaScript do `gerarJs`, separado em linhas e com os tokens editáveis marcados. */
+export function gerarJsMarcado(
+  linhas: readonly Linha[],
+  tokens: readonly { id: string; caminho: Caminho }[] = [],
+): LinhaDeCodigo[] {
+  const mapa = new Map(tokens.map((t) => [JSON.stringify(t.caminho), t.id]));
+  const recuos = recuoDasLinhas(linhas);
+  const fixa = (texto: string): LinhaDeCodigo => ({ linha: null, segmentos: [{ texto }] });
+  const saida: LinhaDeCodigo[] = [];
+
+  const nomes = [...new Set(linhas.flatMap((l) => (l.tipo === 'ATRIBUIR' ? [l.variavel] : [])))];
+  if (nomes.length > 0) saida.push(...nomes.map((n) => fixa(`let ${n};`)), fixa(''));
+  saida.push(fixa(COMENTARIO_LOOP), fixa('while (true) {'));
+
+  linhas.forEach((l, i) => {
+    const m = new Montador(mapa).texto('  '.repeat(recuos[i] + 1));
+    switch (l.tipo) {
+      case 'ABRIR':
+      case 'FECHAR':
+        m.texto(`${l.tipo === 'ABRIR' ? 'abrirSinal' : 'fecharSinal'}("`).valor([i, 'via'], l.via).texto('");');
+        break;
+      case 'ESPERAR':
+        m.texto('esperar(').expressao(l.duracao, [i, 'duracao']).texto(');');
+        break;
+      case 'ATRIBUIR':
+        m.texto(`${l.variavel} = `).expressao(l.valor, [i, 'valor']).texto(';');
+        break;
+      case 'SE':
+        m.texto('if (').condicao(l.condicao, [i, 'condicao']).texto(') {');
+        break;
+      case 'SENAO':
+        m.texto('} else {');
+        break;
+      case 'FIM':
+        m.texto('}');
+        break;
+    }
+    saida.push({ linha: i + 1, segmentos: m.segmentos });
+  });
+  saida.push(fixa('}'));
+  return saida;
 }

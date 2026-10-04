@@ -9,6 +9,8 @@ import {
   type Fase,
 } from '../../src/core/fases';
 import dados from '../../src/content/fases.json';
+import { gerarJs, gerarJsMarcado } from '../../src/core/gerarJs';
+import { montarPrograma } from '../../src/core/programa';
 
 const fases = carregarFases(dados);
 const copia = (): Fase[] => structuredClone(dados) as unknown as Fase[];
@@ -70,6 +72,15 @@ describe.each(fases.map((f) => [f.id, f] as const))('fase %i', (_id, fase) => {
     expect(resultado.estrelas).toBe(0);
   });
 
+  test('o JavaScript marcado (fase 5) é idêntico ao do botão "Ver em JavaScript"', () => {
+    for (const linhas of [fase.solucao, fase.solucaoErrada]) {
+      const texto = gerarJsMarcado(linhas, fase.codigo?.tokens)
+        .map((l) => l.segmentos.map((s) => s.texto).join(''))
+        .join('\n');
+      expect(texto).toBe(gerarJs(montarPrograma(linhas)));
+    }
+  });
+
   test('é possível montar a solução com os blocos disponíveis', () => {
     if (fase.tipo === 'codigo') {
       // Fase 5: trocar os tokens do código inicial chega na solução.
@@ -123,6 +134,18 @@ describe('perdas que ensinam (mensagens certas para o jogador)', () => {
     const { resultado } = simularFase(fase5, errado);
     expect(resultado.venceu).toBe(false);
     expect(resultado.objetivos.find((o) => o.objetivo.tipo === 'maiorFila')?.cumprido).toBe(false);
+  });
+
+  test('fase 5: cada token editável aparece uma vez no código, com o valor atual', () => {
+    const { linhasIniciais, tokens } = fases[4].codigo!;
+    const marcados = gerarJsMarcado(linhasIniciais, tokens).flatMap((l) =>
+      l.segmentos.filter((s) => s.token).map((s) => [s.token, s.texto, l.linha]),
+    );
+    expect(marcados).toEqual([
+      ['comparador', '<', 1],
+      ['numero', '4', 1],
+      ['via', 'Norte', 2],
+    ]);
   });
 
   test('caminho de token inexistente é rejeitado', () => {

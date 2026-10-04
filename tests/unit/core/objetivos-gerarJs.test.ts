@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { bin, bool, cmp, logico, num, variavel } from '../../../src/core/ast';
-import { condicaoParaTexto, expressaoParaTexto, gerarJs, linhaParaTexto } from '../../../src/core/gerarJs';
+import { condicaoParaTexto, expressaoParaTexto, gerarJs, gerarJsMarcado, linhaParaTexto } from '../../../src/core/gerarJs';
 import { avaliarFase, calcularEstrelas, descreverObjetivo, type Objetivo } from '../../../src/core/objetivos';
 import { montarPrograma, type Linha } from '../../../src/core/programa';
 import type { Estatisticas } from '../../../src/core/simulacao';
@@ -137,5 +137,30 @@ describe('gerarJs', () => {
     const misto = logico('AND', logico('OR', cmp(num(1), '<', num(2)), cmp(num(3), '>', num(4))), cmp(num(1), '==', num(1)));
     expect(condicaoParaTexto(misto)).toBe('(1 < 2 || 3 > 4) && 1 === 1');
     expect(condicaoParaTexto(misto, 'bloco')).toBe('(1 < 2 OU 3 > 4) E 1 == 1');
+  });
+});
+
+describe('gerarJsMarcado', () => {
+  test('marca tokens em números, variáveis e contas, com parênteses e recuo certos', () => {
+    const linhas: Linha[] = [
+      { tipo: 'ATRIBUIR', variavel: 't', valor: bin('*', bin('+', variavel('carrosNorte'), num(1)), num(2)) },
+      { tipo: 'SE', condicao: logico('AND', logico('OR', cmp(num(1), '<', num(2)), cmp(num(3), '>', num(4))), cmp(variavel('t'), '==', num(5))) },
+      { tipo: 'ESPERAR', duracao: variavel('t') },
+      { tipo: 'FIM' },
+    ];
+    const codigo = gerarJsMarcado(linhas, [
+      { id: 'n', caminho: [0, 'valor', 'esq', 'dir', 'valor'] },
+      { id: 'v', caminho: [2, 'duracao', 'nome'] },
+      { id: 'op', caminho: [1, 'condicao', 'dir', 'op'] },
+    ]);
+    const texto = codigo.map((l) => l.segmentos.map((s) => s.texto).join('')).join('\n');
+    expect(texto).toBe(gerarJs(montarPrograma(linhas)));
+    expect(codigo.filter((l) => l.linha !== null).map((l) => l.linha)).toEqual([1, 2, 3, 4]);
+    const tokens = codigo.flatMap((l) => l.segmentos.filter((s) => s.token));
+    expect(tokens).toEqual([
+      { texto: '1', token: 'n' },
+      { texto: '===', token: 'op' },
+      { texto: 't', token: 'v' },
+    ]);
   });
 });
