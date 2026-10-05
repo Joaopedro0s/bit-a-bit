@@ -2,7 +2,7 @@
 
 **Vers찾o:** 0.2.0
 **Data:** 2026-10-04
-**Reposit처rio:** https://github.com/Joaopedro0s/bit-a-bit
+**Reposit처rio:** https://github.com/Joaopedro0s/sinal-aberto
 
 ## Premissa e problema
 
@@ -147,4 +147,4 @@ Todos os sons s찾o sintetizados na hora com a Web Audio API (nenhum arquivo de �
 
 Tags `v*.*.*` geram uma release no GitHub com `build.zip`, o hash SHA-256, o SBOM e o `GDD.pdf`.
 
-Reposit처rio: https://github.com/Joaopedro0s/bit-a-bit
+Reposit처rio: https://github.com/Joaopedro0s/sinal-aberto
