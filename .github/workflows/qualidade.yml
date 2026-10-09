@@ -1,0 +1,47 @@
+name: Qualidade
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  qualidade:
+    name: Qualidade e Tamanho do Artefato
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Generate build.zip and verify size limit
+        run: |
+          zip -r build.zip dist
+          SIZE_BYTES=$(stat -c%s build.zip 2>/dev/null || stat -f%z build.zip)
+          SIZE_MB=$(node -e "console.log(($SIZE_BYTES / (1024 * 1024)).toFixed(2))")
+          MAX_BYTES=$((25 * 1024 * 1024))
+
+          echo "### Verificação de Tamanho do Build" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artefato:** \`build.zip\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tamanho Obtido:** \`${SIZE_MB} MB\` (${SIZE_BYTES} bytes)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Limite Permitido:** \`25.00 MB\` (${MAX_BYTES} bytes)" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$SIZE_BYTES" -gt "$MAX_BYTES" ]; then
+            echo "::error::O artefato build.zip (${SIZE_MB} MB) excedeu o limite máximo de 25 MB."
+            exit 1
+          fi
