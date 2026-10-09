@@ -1,0 +1,81 @@
+1
+00:00:00,000 --> 00:00:03,200
+[João Gabriel] E se aprender a programar fosse tão intuitivo
+quanto destravar o trânsito da sua rua?
+
+2
+00:00:03,400 --> 00:00:07,800
+[Kauan Alejandro] Milhões de jovens querem entrar na tecnologia,
+mas o único computador que têm
+
+3
+00:00:07,900 --> 00:00:11,500
+é um celular simples com internet móvel limitada.
+
+4
+00:00:11,700 --> 00:00:15,800
+A maioria dos cursos exige computador potente,
+cadastro obrigatório e usa jargões
+
+5
+00:00:15,900 --> 00:00:19,800
+que mais afastam do que ensinam quem tá começando do zero.
+
+6
+00:00:20,000 --> 00:00:24,200
+[Joao Pedro] É aí que nasce o Sinal Aberto!
+Você programa os semáforos de um cruzamento real.
+
+7
+00:00:24,400 --> 00:00:28,500
+Em vez de comandos abstratos,
+abrir e fechar sinal viram verdadeiro e falso.
+
+8
+00:00:28,700 --> 00:00:32,800
+Montando as regras por toque,
+se o algoritmo estiver certo, o trânsito flui perfeitamente.
+
+9
+00:00:33,000 --> 00:00:37,200
+Mas se errar, os carros batem na hora
+e o jogo congela, mostrando a linha exata do problema!
+
+10
+00:00:37,400 --> 00:00:41,800
+Você depura passo a passo e vê a lógica
+acontecendo na frente dos seus olhos.
+
+11
+00:00:42,000 --> 00:00:46,200
+[Renan Ramos] A cada fase, novos conceitos:
+condições, variáveis para ajustar o tempo,
+
+12
+00:00:46,400 --> 00:00:50,600
+e operadores lógicos para abrir passagem
+prioritária para a ambulância.
+
+13
+00:00:50,800 --> 00:00:55,200
+E no desafio final, você lê e conserta
+código JavaScript de verdade direto no celular!
+
+14
+00:00:55,400 --> 00:00:59,800
+Tudo isso seguro, sem executar eval,
+sem servidor e funcionando 100% offline via Service Worker.
+
+15
+00:01:00,000 --> 00:01:05,200
+1,7 MB na web estática, leve e sem barreiras de entrada.
+
+16
+00:01:05,400 --> 00:01:10,200
+[João Gabriel] O Sinal Aberto transforma qualquer celular
+em uma sala de aula prática, divertida e acessível.
+
+17
+00:01:10,400 --> 00:01:16,500
+[Todos] Abra o sinal para o seu futuro na tecnologia.
+Acesse o link e jogue agora mesmo!
