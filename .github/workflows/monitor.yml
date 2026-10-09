@@ -1,20 +1,79 @@
-name: Monitoramento DORA e Sondas
+name: Monitoramento de Disponibilidade
 
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  issues: write
+
 jobs:
   monitor:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Sondas de HML e PRD
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Executar testes de sondagem (curl)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Simulando execução das sondas..."
-          echo "data,alvo,codigo,tempo" > pages/status/sondas.csv
-          echo "$(date -Iseconds),hml,200,150" >> pages/status/sondas.csv
-          echo "$(date -Iseconds),prd,200,120" >> pages/status/sondas.csv
-      - name: Salvar no branch observabilidade
-        run: echo "Commit para branch observabilidade ignorado localmente"
+          URL_PROD="https://joaopedro0s.github.io/sinal-aberto/"
+          URL_HML="https://joaopedro0s.github.io/sinal-aberto/hml/"
+
+          test_url() {
+            local url=$1
+            local name=$2
+
+            response=$(curl -s -w "%{http_code} %{time_total}" -o /dev/null "$url")
+            code=$(echo "$response" | cut -d' ' -f1)
+            time=$(echo "$response" | cut -d' ' -f2)
+
+            echo "Testando $name ($url): Code=$code, Time=${time}s"
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+
+            git fetch origin observabilidade || true
+            if git rev-parse --verify origin/observabilidade; then
+              git checkout observabilidade
+            else
+              git checkout --orphan observabilidade
+              git rm -rf .
+            fi
+
+            mkdir -p status
+            timestamp=$(date -u +"%Y-%m-%d %H:%M:%SZ")
+            echo "$timestamp,$name,$url,$code,$time" >> status/sondas.csv
+
+            git add status/sondas.csv
+            git commit -m "chore(observabilidade): registra métrica de $name" || true
+            git push origin observabilidade
+
+            git checkout -
+
+            if [ "$code" -ne 200 ]; then
+              EXISTING_ISSUE=$(gh issue list --label "alerta" --search "JogoForaDoAr - $name" --json number -q '.[0].number')
+              if [ -z "$EXISTING_ISSUE" ]; then
+                gh issue create --title "JogoForaDoAr - $name" --body "O ambiente $name ($url) retornou HTTP $code." --label "alerta"
+              fi
+            else
+              EXISTING_ISSUE=$(gh issue list --label "alerta" --search "JogoForaDoAr - $name" --json number -q '.[0].number')
+              if [ -n "$EXISTING_ISSUE" ]; then
+                gh issue close "$EXISTING_ISSUE" --comment "Ambiente $name voltou a responder 200 OK."
+              fi
+            fi
+
+            time_int=$(echo "$time" | awk '{print int($1)}')
+            if [ "$time_int" -ge 2 ]; then
+              EXISTING_LATENCY=$(gh issue list --search "LatenciaAlta - $name" --json number -q '.[0].number')
+              if [ -z "$EXISTING_LATENCY" ]; then
+                gh issue create --title "LatenciaAlta - $name" --body "O ambiente $name ($url) demorou ${time}s para responder."
+              fi
+            fi
+          }
+
+          test_url "$URL_PROD" "PROD"
+          test_url "$URL_HML" "HML"
