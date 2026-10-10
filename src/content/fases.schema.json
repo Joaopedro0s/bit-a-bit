@@ -145,7 +145,8 @@
             "required": ["via", "tempo"],
             "additionalProperties": false
           }
-        }
+        },
+        "clima": { "enum": ["chuva", "limpo"] }
       },
       "required": ["duracao", "semente", "chegadas"],
       "additionalProperties": false
@@ -167,7 +168,7 @@
         {
           "type": "object",
           "properties": {
-            "tipo": { "enum": ["maiorFila", "esperaMaxAmbulancia", "tempoAbertoSemCarros"] },
+            "tipo": { "enum": ["maiorFila", "esperaMaxAmbulancia", "tempoAbertoSemCarros", "maxBlocos"] },
             "maximo": { "type": "number", "minimum": 0 }
           },
           "required": ["tipo", "maximo"],

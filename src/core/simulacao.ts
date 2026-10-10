@@ -38,6 +38,7 @@ export interface ConfigTransito {
   chegadas: Partial<Record<Via, PeriodoChegada[]>>;
   filaInicial?: Partial<Record<Via, number>>;
   ambulancias?: { via: Via; tempo: number }[];
+  clima?: 'chuva' | 'limpo';
 }
 
 export interface Carro {
@@ -316,10 +317,15 @@ export class Simulacao {
   }
 
   private fisica(): void {
+    const chuva = this.config.clima === 'chuva';
+    const tempoTravessia = chuva ? TRAVESSIA_TICKS * 1.5 : TRAVESSIA_TICKS;
+    const tempoReacao = chuva ? REACAO_TICKS * 1.5 : REACAO_TICKS;
+    const intervaloTicks = chuva ? INTERVALO_TICKS * 1.5 : INTERVALO_TICKS;
+
     // Quem está no cruzamento anda; quem termina, passou.
     for (let i = this.cruzando.length - 1; i >= 0; i--) {
       const c = this.cruzando[i];
-      c.progresso = Math.min(1, c.progresso + 1 / TRAVESSIA_TICKS);
+      c.progresso = Math.min(1, c.progresso + 1 / tempoTravessia);
       if (c.progresso >= 1) {
         c.estado = 'passou';
         this.cruzando.splice(i, 1);
@@ -334,8 +340,8 @@ export class Simulacao {
       if (
         sinal.aberto &&
         fila.length > 0 &&
-        this.tick - sinal.desde >= REACAO_TICKS &&
-        this.tick - this.ultimaEntrada[via] >= INTERVALO_TICKS
+        this.tick - sinal.desde >= tempoReacao &&
+        this.tick - this.ultimaEntrada[via] >= intervaloTicks
       ) {
         const c = fila.shift() as Carro;
         c.estado = 'cruzando';

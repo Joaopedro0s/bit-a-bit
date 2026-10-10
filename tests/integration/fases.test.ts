@@ -17,7 +17,7 @@ const copia = (): Fase[] => structuredClone(dados) as unknown as Fase[];
 
 describe('fases.json', () => {
   test('é válido pelo schema e tem as 5 fases em ordem', () => {
-    expect(fases.map((f) => f.id)).toEqual([1, 2, 3, 4, 5]);
+    expect(fases.map((f) => f.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(fases.slice(0, 4).every((f) => f.tipo === 'blocos')).toBe(true);
     expect(fases[4].tipo).toBe('codigo');
   });

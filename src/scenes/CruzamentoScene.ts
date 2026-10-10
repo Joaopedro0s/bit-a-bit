@@ -58,6 +58,10 @@ export class CruzamentoScene extends Phaser.Scene {
       this.ativar3D();
     }
 
+    if (this.fase.transito.clima === 'chuva') {
+      this.criarChuva();
+    }
+
     this.novaSimulacao([]);
 
     const acoes: AcoesPainel = {
@@ -110,6 +114,24 @@ export class CruzamentoScene extends Phaser.Scene {
     if (this.tutorial) {
       this.tutorial.concluir();
     }
+  }
+
+  private criarChuva(): void {
+    const emissor = this.add.particles(0, -50, 'carro', {
+      frame: [0], // usa frame existente só como forma branca pequena se colocar tint/alpha
+      x: { min: 0, max: this.scale.width },
+      y: { min: -50, max: -10 },
+      lifespan: 1500,
+      speedY: { min: 400, max: 600 },
+      speedX: { min: -50, max: 50 },
+      scaleY: { min: 4, max: 8 },
+      scaleX: 0.1,
+      alpha: { start: 0.4, end: 0 },
+      quantity: 4,
+      blendMode: 'ADD',
+      tint: 0x88ccff
+    });
+    emissor.setDepth(100); // Acima de tudo do Phaser, mas o DOM do Phaser fica no z-index
   }
 
   update(_tempo: number, delta: number): void {
