@@ -30,7 +30,10 @@ export function alternarSom(): boolean {
 }
 
 function audio(): AudioContext | null {
-  if (!ligado) return null;
+  if (!ligado) {
+    pararMusica();
+    return null;
+  }
   try {
     if (!contextoAudio) {
       const Construtor =
@@ -39,10 +42,61 @@ function audio(): AudioContext | null {
       contextoAudio = new Construtor();
     }
     if (contextoAudio.state === 'suspended') void contextoAudio.resume();
+    iniciarMusica(contextoAudio);
     return contextoAudio;
   } catch {
     return null;
   }
+}
+
+// ──────────────────────────────────────── Música de Fundo
+let noMusica: AudioBufferSourceNode | null = null;
+
+function pararMusica(): void {
+  if (noMusica) {
+    noMusica.stop();
+    noMusica.disconnect();
+    noMusica = null;
+  }
+}
+
+function iniciarMusica(ac: AudioContext): void {
+  if (noMusica) return; // já tocando
+  const bpm = 100;
+  const tQuarto = 60 / bpm;
+  // Notas: C major pentatonic (C3, D3, E3, G3, A3) com duração total de 4 compassos
+  const notas = [
+    { n: 130.81, t: 0 }, { n: 146.83, t: 1 }, { n: 164.81, t: 2 }, { n: 196.00, t: 3 },
+    { n: 164.81, t: 4 }, { n: 146.83, t: 5.5 }, { n: 130.81, t: 6.5 },
+  ];
+  const duracaoLoop = 8 * tQuarto;
+  
+  // Cria buffer com um "sintetizador" gravado offline para loop perfeito
+  const offline = new OfflineAudioContext(1, ac.sampleRate * duracaoLoop, ac.sampleRate);
+  notas.forEach(({ n, t }) => {
+    const osc = offline.createOscillator();
+    const gain = offline.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = n;
+    const agora = t * tQuarto;
+    gain.gain.setValueAtTime(0, agora);
+    gain.gain.linearRampToValueAtTime(0.05, agora + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, agora + tQuarto - 0.05);
+    osc.connect(gain).connect(offline.destination);
+    osc.start(agora);
+    osc.stop(agora + tQuarto);
+  });
+  
+  void offline.startRendering().then(buffer => {
+    if (!ligado) return; // pode ter desligado enquanto renderizava
+    noMusica = ac.createBufferSource();
+    noMusica.buffer = buffer;
+    noMusica.loop = true;
+    const ganhoGeral = ac.createGain();
+    ganhoGeral.gain.value = 0.4; // volume baixo
+    noMusica.connect(ganhoGeral).connect(ac.destination);
+    noMusica.start();
+  });
 }
 
 interface Tom {

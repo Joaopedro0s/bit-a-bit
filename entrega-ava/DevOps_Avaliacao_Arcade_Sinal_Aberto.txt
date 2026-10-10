@@ -1,0 +1,50 @@
+﻿FACULDADE SENAI · INTEGRAÇÃO E ENTREGA CONTÍNUA – DEVOPS · 2º ADS
+AVALIAÇÃO SAP1-DEVOPS · DESAFIO ARCADE · FICHA DE ENTREGA DO SQUAD
+Gerada em: 09/10/2026
+
+Squad: Sinal Aberto
+Repositório: https://github.com/Joaopedro0s/sinal-aberto
+
+INTEGRANTES
+  1. Joao Pedro Fonseca Alves de Carvalho · RA 26179863 · Plataforma e Release
+  2. João Gabriel Floriano Olimpio · RA 26179859 · Produto e Game Design
+  3. Kauan Alejandro da Rosa · RA 26179867 · Desenvolvimento e Qualidade
+  4. Renan Ramos Capeleti · RA 26180895 · SRE e Segurança
+
+EVIDÊNCIAS
+  URL pública do jogo (produção): https://joaopedro0s.github.io/sinal-aberto/
+  URL de homologação: https://joaopedro0s.github.io/sinal-aberto/hml/
+  Última execução verde da pipeline (link ou print): https://github.com/Joaopedro0s/sinal-aberto/actions/runs/38017114763
+  Painel /status/ (link): https://joaopedro0s.github.io/sinal-aberto/status/
+  Vídeo pitch (arquivo no AVA ou link): — (pendente; roteiro e legendas em docs/pitch/)
+  Relatório técnico (PDF): anexo no AVA (relatorio-tecnico-sinal-aberto.pdf)
+  Release v1.0.0 (pacote: build.zip, checksum, SBOM, GDD.pdf): https://github.com/Joaopedro0s/sinal-aberto/releases/tag/v1.0.0
+  Pasta do Google Drive do concurso (se inscritos): —
+
+INTEGRÁVEIS (componente A, 70%)
+  INT-01 Repositório e fluxo Git (10%) · entregue: sim · autoavaliação: 8,0
+  INT-02 GDD como código (8%) · entregue: sim · autoavaliação: 8,5
+  INT-03 Pipeline CI/CD no GitHub Actions (15%) · entregue: sim · autoavaliação: 9,0
+  INT-04 Testes automatizados (12%) · entregue: sim · autoavaliação: 8,5
+  INT-05 Segurança, licenças e uso de IA (10%) · entregue: sim · autoavaliação: 8,0
+  INT-06 Release versionada e empacotada (10%) · entregue: sim · autoavaliação: 9,0
+  INT-07 Ambientes, entrega progressiva e rollback (12%) · entregue: sim · autoavaliação: 8,0
+  INT-08 Monitoramento, alertas e métricas DORA (10%) · entregue: parcial · autoavaliação: 6,0
+  INT-09 Build pública e pacote de submissão (8%) · entregue: parcial · autoavaliação: 5,0
+  INT-10 Vídeo pitch e relatório técnico (5%) · entregue: parcial · autoavaliação: 4,0
+  Componente A estimado: 7,7
+
+BANCA (componente B, 30%)
+  Inovação e originalidade (25%): 7,0
+  Viabilidade técnica e execução (25%): 8,5
+  Qualidade do protótipo (jogabilidade) (30%): 8,0
+  Apresentação (20%): 7,5
+  Componente B estimado: 7,8
+
+NOTA ESTIMADA PELO SQUAD (F = 1,0): 7,7  (a nota oficial é atribuída pelo professor)
+
+DECLARAÇÕES
+  [ ] O squad tem 4 integrantes registrados em SQUAD.md, sem alterações desde 02/10. (Registrados em 04/10; sem alterações desde então.)
+  [x] Todo ativo de terceiros e todo uso de IA estão registrados em THIRD_PARTY.md e AI-USAGE.md.
+  [x] Nenhuma credencial real está no repositório e a produção só foi alterada pela pipeline.
+  [ ] O scripts/triagem.sh foi executado na tag v1.0.0 e terminou com TRIAGEM APROVADA. (triagem.sh ainda simplificado; não executado.)

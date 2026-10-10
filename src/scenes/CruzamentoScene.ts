@@ -1,4 +1,4 @@
-// Cena da fase: liga a Mesa de Programação (DOM) à simulação (core) e à vista (Phaser).
+// Cena da fase: liga a Mesa de Programação (DOM) à simulação (core) e à vista (Phaser ou Three.js).
 // A cena só orquestra e desenha: quem decide batida, vitória e estrelas é o core.
 
 import Phaser from 'phaser';
@@ -16,6 +16,8 @@ import { EditorCodigo } from '../ui/editorCodigo';
 import { Mesa } from '../ui/mesa';
 import type { AcoesPainel, EstadoPainel, PainelFase } from '../ui/painelFase';
 import { VistaCruzamento } from './vistaCruzamento';
+import { Vista3D } from './vista3d/Vista3D';
+import { MonitorFPS } from './vista3d/detectorWebGL';
 
 const VELOCIDADES = [1, 2, 4];
 /** Limite de ticks por frame, para um celular lento não travar. */
@@ -23,7 +25,9 @@ const MAX_TICKS_POR_FRAME = 200;
 
 export class CruzamentoScene extends Phaser.Scene {
   private fase!: Fase;
-  private vista!: VistaCruzamento;
+  private vista!: VistaCruzamento;        // renderizador 2D (sempre instanciado como fallback)
+  private vista3D: Vista3D | null = null; // renderizador 3D (null quando fallback ativo)
+  private monitorFPS: MonitorFPS | null = null;
   private mesa!: PainelFase;
   private sim!: Simulacao;
   private estado: EstadoPainel = 'editando';
@@ -40,10 +44,17 @@ export class CruzamentoScene extends Phaser.Scene {
   }
 
   create(): void {
+    const ctx = contexto();
+    // 2D Phaser sempre criado como fallback / modo de tela inicial
     this.vista = new VistaCruzamento(this, {
       painel: true,
       ambulancia: (this.fase.transito.ambulancias?.length ?? 0) > 0,
     });
+
+    if (ctx.modo3D) {
+      this.ativar3D();
+    }
+
     this.novaSimulacao([]);
 
     const acoes: AcoesPainel = {
@@ -52,13 +63,13 @@ export class CruzamentoScene extends Phaser.Scene {
       reiniciar: () => this.reiniciar(),
       verJs: () => this.verJs(),
       velocidade: () => this.trocarVelocidade(),
-      voltar: () => this.scene.start('SelecaoFases'),
+      voltar: () => { this.desligar3D(); this.scene.start('SelecaoFases'); },
       editou: () => this.reiniciar(),
     };
     this.mesa =
       this.fase.tipo === 'codigo'
-        ? new EditorCodigo(this.fase, acoes, contexto().velocidade)
-        : new Mesa(this.fase, acoes, contexto().velocidade);
+        ? new EditorCodigo(this.fase, acoes, ctx.velocidade)
+        : new Mesa(this.fase, acoes, ctx.velocidade);
     trocarPainel(this.mesa.raiz);
     this.publicar();
 
@@ -67,6 +78,10 @@ export class CruzamentoScene extends Phaser.Scene {
       testidBotao: 'btn-comecar',
       testid: 'janela-dica',
     });
+  }
+
+  shutdown(): void {
+    this.desligar3D();
   }
 
   update(_tempo: number, delta: number): void {
@@ -86,7 +101,8 @@ export class CruzamentoScene extends Phaser.Scene {
         this.mudarEstado('passo');
       }
     }
-    this.vista.atualizar(delta, v);
+    if (this.vista3D) this.vista3D.atualizar(delta, v);
+    else this.vista.atualizar(delta, v);
   }
 
   // ------------------------------------------------------------ ações da Mesa
@@ -159,6 +175,7 @@ export class CruzamentoScene extends Phaser.Scene {
     this.sim = new Simulacao(this.fase.transito, montarPrograma(linhas));
     this.acumulado = 0;
     this.vista.definirSimulacao(this.sim);
+    if (this.vista3D) this.vista3D.definirSimulacao(this.sim);
   }
 
   /** Monta o programa da Mesa; se tiver erro de estrutura, avisa e aponta a linha. */
@@ -176,6 +193,7 @@ export class CruzamentoScene extends Phaser.Scene {
     }
     this.acumulado = 0;
     this.vista.definirSimulacao(this.sim);
+    if (this.vista3D) this.vista3D.definirSimulacao(this.sim);
     return true;
   }
 
@@ -190,7 +208,8 @@ export class CruzamentoScene extends Phaser.Scene {
     const sim = this.sim;
     if (sim.falha) {
       if (sim.falha.tipo === 'colisao') {
-        this.vista.mostrarBatida();
+        if (this.vista3D) this.vista3D.mostrarBatida();
+        else this.vista.mostrarBatida();
         sons.freio();
       } else {
         sons.erro();
@@ -215,6 +234,7 @@ export class CruzamentoScene extends Phaser.Scene {
       const ctx = contexto();
       ctx.progresso = registrarEstrelas(ctx.progresso, this.fase.id, resultado.estrelas);
       salvarProgresso(ctx.progresso);
+      if (this.vista3D) this.vista3D.mostrarVitoria();
       sons.vitoria();
       const dica =
         resultado.estrelas < 3 ? ` Dá para fazer com ${this.fase.idealBlocos} linhas e ganhar 3 estrelas.` : '';
@@ -250,5 +270,33 @@ export class CruzamentoScene extends Phaser.Scene {
       status: this.estado === 'acabou' ? this.sim.status : this.estado,
       colisoes: this.sim.estatisticas().colisoes,
     });
+  }
+
+  private ativar3D(): void {
+    const ctx = contexto();
+    this.vista3D = new Vista3D(ctx.palco);
+    // Torna o canvas do Phaser transparente e invisível à interação
+    this.game.canvas.style.opacity = '0';
+    this.game.canvas.style.pointerEvents = 'none';
+
+    // Se cair para < 30 FPS nos primeiros 3 segundos, desliga o 3D e volta ao 2D.
+    this.monitorFPS = new MonitorFPS(3000, () => {
+      console.warn('FPS muito baixo (< 30). Desligando 3D e usando fallback 2D para a cena.');
+      this.desligar3D();
+    });
+  }
+
+  private desligar3D(): void {
+    if (this.monitorFPS) {
+      this.monitorFPS.encerrar();
+      this.monitorFPS = null;
+    }
+    if (this.vista3D) {
+      this.vista3D.destruir();
+      this.vista3D = null;
+      // Volta o Phaser ao normal
+      this.game.canvas.style.opacity = '1';
+      this.game.canvas.style.pointerEvents = 'auto';
+    }
   }
 }

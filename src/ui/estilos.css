@@ -42,26 +42,50 @@ body {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
-  max-width: 500px;
   margin: 0 auto;
   background: var(--superficie);
 }
 
 #palco {
-  flex: 0 0 40%;
-  min-height: 0;
+  flex: 0 0 auto;
+  height: clamp(240px, 40vh, 420px);
   position: relative;
   background: #2b3a2f;
+  /* Garante que o canvas do Phaser ou Three.js ocupe todo o espaço */
+  overflow: hidden;
+}
+
+#palco canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 #painel {
-  flex: 1 1 60%;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
   overflow-y: auto;
+}
+
+/* Modo paisagem / desktop: divide a tela ao meio */
+@media (min-width: 600px) and (orientation: landscape) {
+  #app {
+    flex-direction: row;
+    max-width: 1200px;
+  }
+  #palco {
+    flex: 1 1 50%;
+    height: 100%;
+  }
+  #painel {
+    flex: 1 1 50%;
+  }
 }
 
 button {
