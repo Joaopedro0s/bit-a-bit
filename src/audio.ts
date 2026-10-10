@@ -171,3 +171,61 @@ export function erro(): void {
   tocar(ac, { freq: 240, duracao: 0.14, tipo: 'square', volume: 0.06 });
   tocar(ac, { freq: 180, inicio: 0.17, duracao: 0.2, tipo: 'square', volume: 0.06 });
 }
+
+/** Sirene de ambulância: varredura contínua de frequência. */
+export function sirene(): void {
+  const ac = audio();
+  if (!ac) return;
+  const agora = ac.currentTime;
+  const osc = ac.createOscillator();
+  const ganho = ac.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(700, agora);
+  osc.frequency.linearRampToValueAtTime(1000, agora + 0.5);
+  osc.frequency.linearRampToValueAtTime(700, agora + 1.0);
+  ganho.gain.setValueAtTime(0.0001, agora);
+  ganho.gain.linearRampToValueAtTime(0.08, agora + 0.1);
+  ganho.gain.linearRampToValueAtTime(0.0001, agora + 0.9);
+  osc.connect(ganho).connect(ac.destination);
+  osc.start(agora);
+  osc.stop(agora + 1.0);
+}
+
+// ──────────────────────────────────────── Vibração
+
+const CHAVE_VIBRA = 'sinalAberto.vibra.v1';
+let vibraLigado = lerPrefVibra();
+
+function lerPrefVibra(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(CHAVE_VIBRA) !== 'desligado';
+  } catch {
+    return true;
+  }
+}
+
+export function vibracaoLigada(): boolean {
+  return vibraLigado;
+}
+
+export function alternarVibracao(): boolean {
+  vibraLigado = !vibraLigado;
+  try {
+    globalThis.localStorage?.setItem(CHAVE_VIBRA, vibraLigado ? 'ligado' : 'desligado');
+  } catch {
+    //
+  }
+  if (vibraLigado) vibrar(50);
+  return vibraLigado;
+}
+
+export function vibrar(padrao: number | number[]): void {
+  if (!vibraLigado) return;
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate(padrao);
+    }
+  } catch {
+    // Dispositivo não suporta
+  }
+}

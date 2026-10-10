@@ -45,6 +45,7 @@ export class CruzamentoScene extends Phaser.Scene {
 
   create(): void {
     const ctx = contexto();
+    this.cameras.main.fadeIn(300, 0, 0, 0);
     // 2D Phaser sempre criado como fallback / modo de tela inicial
     this.vista = new VistaCruzamento(this, {
       painel: true,
@@ -63,7 +64,11 @@ export class CruzamentoScene extends Phaser.Scene {
       reiniciar: () => this.reiniciar(),
       verJs: () => this.verJs(),
       velocidade: () => this.trocarVelocidade(),
-      voltar: () => { this.desligar3D(); this.scene.start('SelecaoFases'); },
+      voltar: () => {
+        this.desligar3D();
+        this.cameras.main.fadeOut(200, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('SelecaoFases'));
+      },
       editou: () => this.reiniciar(),
     };
     this.mesa =
@@ -211,6 +216,7 @@ export class CruzamentoScene extends Phaser.Scene {
         if (this.vista3D) this.vista3D.mostrarBatida();
         else this.vista.mostrarBatida();
         sons.freio();
+        sons.vibrar(250);
       } else {
         sons.erro();
       }
@@ -236,6 +242,7 @@ export class CruzamentoScene extends Phaser.Scene {
       salvarProgresso(ctx.progresso);
       if (this.vista3D) this.vista3D.mostrarVitoria();
       sons.vitoria();
+      sons.vibrar([50, 50, 50, 50, 50]);
       const dica =
         resultado.estrelas < 3 ? ` Dá para fazer com ${this.fase.idealBlocos} linhas e ganhar 3 estrelas.` : '';
       this.mesa.mostrarMensagem(
@@ -244,12 +251,16 @@ export class CruzamentoScene extends Phaser.Scene {
         {
           texto: 'Continuar ➜',
           testid: 'btn-continuar',
-          aoClicar: () =>
-            this.scene.start('FimFase', {
-              faseId: this.fase.id,
-              estrelas: resultado.estrelas,
-              linhas: this.mesa.linhas,
-            }),
+          aoClicar: () => {
+            this.cameras.main.fadeOut(200, 0, 0, 0);
+            this.cameras.main.once('camerafadeoutcomplete', () =>
+              this.scene.start('FimFase', {
+                faseId: this.fase.id,
+                estrelas: resultado.estrelas,
+                linhas: this.mesa.linhas,
+              })
+            );
+          },
         },
       );
     } else {

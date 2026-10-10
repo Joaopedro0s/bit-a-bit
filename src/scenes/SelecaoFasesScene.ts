@@ -12,6 +12,7 @@ export class SelecaoFasesScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cameras.main.fadeIn(300, 0, 0, 0);
     const { fases, progresso } = contexto();
     const vencidas = fases.filter((f) => (progresso.estrelas[f.id] ?? 0) > 0).length;
     this.demo = new Demo(this, 'Escolha a fase', `${vencidas} de ${fases.length} fases vencidas`);
@@ -19,8 +20,14 @@ export class SelecaoFasesScene extends Phaser.Scene {
       telaSelecao(
         fases,
         progresso,
-        (id) => this.scene.start('Cruzamento', { faseId: id }),
-        () => this.scene.start('Menu'),
+        (id) => {
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Cruzamento', { faseId: id }));
+        },
+        () => {
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Menu'));
+        },
       ),
     );
     publicarEstado({ tela: 'selecao', fase: null });

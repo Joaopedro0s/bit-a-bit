@@ -19,6 +19,7 @@ import {
 
 import type { Via } from '../../core/ast';
 import { VIAS } from '../../core/ast';
+import { sirene } from '../../audio';
 import type { Carro, Simulacao } from '../../core/simulacao';
 import {
   CORES_CARRO,
@@ -297,6 +298,7 @@ export class Vista3D {
 
   private criarVisualCarro(c: Carro, posInicial: Vector3): VisualCarro {
     if (c.ambulancia) {
+      sirene();
       const mesh = criarMeshAmbulancia(c.via === 'Norte');
       mesh.position.copy(posInicial);
       this.scene.add(mesh);
