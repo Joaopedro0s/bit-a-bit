@@ -74,13 +74,13 @@ Abaixo estão as telas reais do Sinal Aberto, na ordem em que o jogador as encon
 
 ![Menu principal](img/tela-menu.png)
 
-O cruzamento animado aparece no canvas (parte de cima). Embaixo, um texto de boas-vindas, o botão **▶ Jogar** e o botão **Como jogar** (que abre uma janela com instruções curtas). O número da versão fica no rodapé.
+O cruzamento animado aparece no canvas (parte de cima). Embaixo, um texto de boas-vindas, o botão **> Jogar** e o botão **Como jogar** (que abre uma janela com instruções curtas). O número da versão fica no rodapé.
 
 ### Seleção de fases
 
 ![Seleção de fases](img/tela-selecao.png)
 
-Lista vertical com as 5 fases. Cada item mostra o número, o título e as estrelas conquistadas (★) ou o cadeado (🔒) se a fase anterior ainda não foi vencida. O botão ← no topo volta ao menu. O canvas mostra quantas fases foram vencidas.
+Lista vertical com as 5 fases. Cada item mostra o número, o título e as estrelas conquistadas (*) ou o cadeado ((bloqueada)) se a fase anterior ainda não foi vencida. O botão <- no topo volta ao menu. O canvas mostra quantas fases foram vencidas.
 
 ### Cruzamento + Mesa de Programação (fases 1 a 4)
 
@@ -88,8 +88,8 @@ Lista vertical com as 5 fases. Cada item mostra o número, o título e as estrel
 
 A tela de jogo principal, dividida em duas partes:
 
-- **Canvas (≈ 40% superior):** cruzamento visto de cima com pistas, faixas de pedestre, quarteirões, árvores e carros coloridos. Os semáforos mostram ▲ ABERTO (verde) ou ■ FECHADO (vermelho). Um painel ao vivo exibe os valores do estado (ex.: "Norte: 4 carros", "Ambulância: SIM").
-- **Mesa de Programação (≈ 60% inferior):** objetivos da fase, gaveta de blocos com rolagem horizontal (cores por categoria: amarelo para `se`, verde para ações, azul para variáveis, roxo para lógica), lista numerada do algoritmo montado e barra de ação com os botões **▶ INICIAR TRÁFEGO**, **🔍 PASSO A PASSO**, **↺ REINICIAR**, **⌫ Apagar**, **{ } Ver em JavaScript** e seletor de velocidade (1×, 2×, 4×).
+- **Canvas (~ 40% superior):** cruzamento visto de cima com pistas, faixas de pedestre, quarteirões, árvores e carros coloridos. Os semáforos mostram ^ ABERTO (verde) ou # FECHADO (vermelho). Um painel ao vivo exibe os valores do estado (ex.: "Norte: 4 carros", "Ambulância: SIM").
+- **Mesa de Programação (~ 60% inferior):** objetivos da fase, gaveta de blocos com rolagem horizontal (cores por categoria: amarelo para `se`, verde para ações, azul para variáveis, roxo para lógica), lista numerada do algoritmo montado e barra de ação com os botões **> INICIAR TRÁFEGO**, ** PASSO A PASSO**, **reiniciar REINICIAR**, **apagar Apagar**, **{ } Ver em JavaScript** e seletor de velocidade (1×, 2×, 4×).
 
 ### Fase 5 — Editor de código JavaScript
 
