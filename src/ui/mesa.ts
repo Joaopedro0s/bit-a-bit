@@ -78,6 +78,34 @@ export class Mesa extends PainelFase {
         this.apagar();
       }
     });
+
+    this.lista.ondragover = (e) => {
+      if (this.travada()) return;
+      e.preventDefault();
+    };
+    this.lista.ondrop = (e) => {
+      if (this.travada()) return;
+      const alvo = e.target as HTMLElement;
+      // Se dropou na lista e não num `li` específico (ex: final da lista ou lista vazia)
+      if (alvo === this.lista || alvo.classList.contains('vazio')) {
+        e.preventDefault();
+        const deStr = e.dataTransfer?.getData('text/plain');
+        if (!deStr) return;
+        if (deStr.startsWith('gaveta:')) {
+          const idxGaveta = parseInt(deStr.split(':')[1], 10);
+          this.adicionar(structuredClone(fase.gaveta!.linhas[idxGaveta]));
+        } else {
+          const de = parseInt(deStr, 10);
+          if (!isNaN(de)) {
+            const [removida] = this.linhas.splice(de, 1);
+            this.linhas.push(removida);
+            clique();
+            this.alterou();
+          }
+        }
+      }
+    };
+
     this.desenhar();
   }
 
@@ -115,6 +143,13 @@ export class Mesa extends PainelFase {
       return;
     }
     this.anuncio.textContent = 'Última linha apagada';
+    this.alterou();
+  }
+
+  private apagarLinha(indice: number): void {
+    if (this.travada()) return;
+    this.linhas.splice(indice, 1);
+    this.anuncio.textContent = `Linha ${indice + 1} apagada`;
     this.alterou();
   }
 
@@ -207,13 +242,20 @@ export class Mesa extends PainelFase {
       if (g.condicoes.length > 0) {
         blocos.push(botao('se ( … ) {', () => this.comecarSe(), { classe: 'bloco se', testid: 'bloco-se' }));
       }
-      for (const l of g.linhas) {
-        blocos.push(
-          botao(linhaParaTexto(l), () => this.adicionar(structuredClone(l)), {
-            classe: `bloco ${categoria(l)}`,
-            testid: testidDoBloco(l),
-          }),
-        );
+      for (let i = 0; i < g.linhas.length; i++) {
+        const l = g.linhas[i];
+        const btn = botao(linhaParaTexto(l), () => this.adicionar(structuredClone(l)), {
+          classe: `bloco ${categoria(l)}`,
+          testid: testidDoBloco(l),
+        });
+        if (!this.travada()) {
+          btn.draggable = true;
+          btn.ondragstart = (e) => {
+            e.dataTransfer!.effectAllowed = 'copy';
+            e.dataTransfer!.setData('text/plain', `gaveta:${i}`);
+          };
+        }
+        blocos.push(btn);
       }
     }
     if (this.travada()) for (const b of blocos) b.disabled = true;
@@ -225,13 +267,56 @@ export class Mesa extends PainelFase {
 
   private desenharLinhas(): void {
     const recuos = recuoDasLinhas(this.linhas);
-    const itens = this.linhas.map((l, i) =>
-      el(
+    const itens = this.linhas.map((l, i) => {
+      const li = el(
         'li',
         { classe: categoria(l), testid: `linha-${i + 1}` },
         el('span', { style: `padding-left:${recuos[i] * 1.4}em` }, linhaParaTexto(l)),
-      ),
-    );
+      );
+      if (!this.travada()) {
+        li.draggable = true;
+        li.ondragstart = (e) => {
+          e.dataTransfer!.effectAllowed = 'move';
+          e.dataTransfer!.setData('text/plain', i.toString());
+          li.classList.add('arrastando');
+        };
+        li.ondragend = () => li.classList.remove('arrastando');
+        li.ondragover = (e) => {
+          e.preventDefault();
+          e.dataTransfer!.dropEffect = 'move';
+          li.classList.add('alvo-drop');
+        };
+        li.ondragleave = () => li.classList.remove('alvo-drop');
+        li.ondrop = (e) => {
+          e.preventDefault();
+          e.stopPropagation(); // Evita que caia na lista também
+          li.classList.remove('alvo-drop');
+          const deStr = e.dataTransfer?.getData('text/plain');
+          if (!deStr) return;
+          if (deStr.startsWith('gaveta:')) {
+            const idxGaveta = parseInt(deStr.split(':')[1], 10);
+            this.linhas.splice(i, 0, structuredClone(this.fase.gaveta!.linhas[idxGaveta]));
+            clique();
+            this.alterou();
+          } else {
+            const de = parseInt(deStr, 10);
+            if (de !== i && !isNaN(de)) {
+              const [removida] = this.linhas.splice(de, 1);
+              this.linhas.splice(i, 0, removida);
+              clique();
+              this.alterou();
+            }
+          }
+        };
+
+        const btnApagar = botao('✕', () => this.apagarLinha(i), {
+          classe: 'btn-apagar-linha',
+          rotulo: `Apagar linha ${i + 1}`,
+        });
+        li.appendChild(btnApagar);
+      }
+      return li;
+    });
     if (this.rascunho) {
       const { condicao, operador } = this.rascunho;
       let texto = condicao ? condicaoParaTexto(condicao, 'bloco') : '…';

@@ -317,6 +317,15 @@ p {
   border-radius: 6px;
   border-left: 4px solid transparent;
   overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: grab;
+}
+
+.algoritmo li:active {
+  cursor: grabbing;
 }
 
 .algoritmo li::marker {
@@ -348,6 +357,25 @@ p {
   margin-left: -30px;
   color: var(--texto-fraco);
   font-family: inherit;
+}
+
+.arrastando {
+  opacity: 0.5;
+}
+
+.alvo-drop {
+  border-top: 2px solid var(--verde) !important;
+}
+
+.btn-apagar-linha {
+  background: transparent !important;
+  color: var(--vermelho) !important;
+  border: none !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .barra-acao {
