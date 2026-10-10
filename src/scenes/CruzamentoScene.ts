@@ -15,6 +15,7 @@ import { abrirJanela, el } from '../ui/dom';
 import { EditorCodigo } from '../ui/editorCodigo';
 import { Mesa } from '../ui/mesa';
 import type { AcoesPainel, EstadoPainel, PainelFase } from '../ui/painelFase';
+import { Tutorial } from '../ui/tutorial';
 import { VistaCruzamento } from './vistaCruzamento';
 import { Vista3D } from './vista3d/Vista3D';
 import { MonitorFPS } from './vista3d/detectorWebGL';
@@ -32,6 +33,7 @@ export class CruzamentoScene extends Phaser.Scene {
   private sim!: Simulacao;
   private estado: EstadoPainel = 'editando';
   private acumulado = 0;
+  private tutorial: Tutorial | null = null;
 
   constructor() {
     super('Cruzamento');
@@ -82,11 +84,32 @@ export class CruzamentoScene extends Phaser.Scene {
       textoBotao: 'Começar',
       testidBotao: 'btn-comecar',
       testid: 'janela-dica',
+      aoFechar: () => this.tentarTutorial(),
     });
+  }
+
+  private tentarTutorial(): void {
+    const p = contexto().progresso;
+    if (this.fase.id === 1 && !p.tutorialOmitido) {
+      this.tutorial = new Tutorial([
+        { texto: 'Olá! Eu sou o Sinaleiro. Vou te ensinar a controlar o trânsito!', alvo: 'btn-iniciar' },
+        { texto: 'Sua missão é deixar todos os carros passarem sem bater.', alvo: 'gaveta' },
+        { texto: 'Arraste o bloco verde "abrir(Norte)" e solte-o no seu algoritmo.', alvo: 'algoritmo', gatilho: () => this.mesa.linhas.length > 0 },
+        { texto: 'Agora clique em Roda Tudo para ver o que acontece!', alvo: 'btn-iniciar', gatilho: () => this.estado === 'rodando' },
+        { texto: 'Muito bem! Você está no controle.', gatilho: () => !this.sim?.ativa }
+      ], () => {
+        p.tutorialOmitido = true;
+        salvarProgresso(p);
+        this.tutorial = null;
+      });
+    }
   }
 
   shutdown(): void {
     this.desligar3D();
+    if (this.tutorial) {
+      this.tutorial.concluir();
+    }
   }
 
   update(_tempo: number, delta: number): void {

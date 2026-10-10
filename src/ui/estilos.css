@@ -522,3 +522,74 @@ p {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- Tutorial ---------- */
+.tutorial-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.tutorial-balao {
+  background: var(--superficie);
+  border: 2px solid var(--laranja);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  max-width: 500px;
+  width: 100%;
+  pointer-events: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+
+.tutorial-mascote {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+}
+
+.tutorial-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.tutorial-texto {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.btn-pular {
+  align-self: flex-start;
+  padding: 4px 10px;
+  min-height: 32px;
+  font-size: 0.8rem;
+  background: var(--superficie-2);
+}
+
+.tutorial-destaque {
+  position: relative;
+  z-index: 101;
+  box-shadow: 0 0 0 4px var(--laranja), 0 0 20px var(--laranja);
+  border-radius: 4px;
+}
+
+@keyframes pulo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.pulo .tutorial-mascote {
+  animation: pulo 0.3s ease-out;
+}

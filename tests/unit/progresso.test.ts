@@ -21,15 +21,15 @@ describe('progresso no navegador', () => {
     const m = memoria();
     salvarProgresso({ estrelas: { 1: 3, 2: 1 } }, m);
     expect(JSON.parse(m.dados.get(CHAVE_PROGRESSO)!)).toEqual({ estrelas: { 1: 3, 2: 1 } });
-    expect(carregarProgresso(m)).toEqual({ estrelas: { 1: 3, 2: 1 } });
+    expect(carregarProgresso(m)).toEqual({ estrelas: { 1: 3, 2: 1 }, tutorialOmitido: false });
   });
 
   test('dados quebrados ou armazenamento bloqueado viram progresso vazio', () => {
     const m = memoria();
     m.setItem(CHAVE_PROGRESSO, '{nao é json');
-    expect(carregarProgresso(m)).toEqual({ estrelas: {} });
+    expect(carregarProgresso(m)).toEqual({ estrelas: {}, tutorialOmitido: false });
     m.setItem(CHAVE_PROGRESSO, JSON.stringify({ estrelas: { 1: 99, 2: 'x', 3: 2 } }));
-    expect(carregarProgresso(m)).toEqual({ estrelas: { 3: 2 } });
+    expect(carregarProgresso(m)).toEqual({ estrelas: { 3: 2 }, tutorialOmitido: false });
 
     const bloqueado = {
       getItem: () => {
@@ -39,9 +39,9 @@ describe('progresso no navegador', () => {
         throw new Error('cheio');
       },
     };
-    expect(carregarProgresso(bloqueado)).toEqual({ estrelas: {} });
+    expect(carregarProgresso(bloqueado)).toEqual({ estrelas: {}, tutorialOmitido: false });
     expect(() => salvarProgresso({ estrelas: { 1: 1 } }, bloqueado)).not.toThrow();
-    expect(carregarProgresso(null)).toEqual({ estrelas: {} });
+    expect(carregarProgresso(null)).toEqual({ estrelas: {}, tutorialOmitido: false });
   });
 
   test('mantém o melhor resultado e libera as fases em ordem', () => {
