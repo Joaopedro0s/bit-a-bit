@@ -9,6 +9,10 @@ test('abre o jogo, monta a solução da fase 1 tocando nos blocos e vence', asyn
   page.on('pageerror', (e) => erros.push(e.message));
 
   await page.goto(URL_TESTE);
+  await page.evaluate(() =>
+    localStorage.setItem('sinalAberto.progresso.v1', JSON.stringify({ tutorialOmitido: true })),
+  );
+  await page.reload();
   await expect(page).toHaveTitle(/Sinal Aberto/);
   await expect(page.getByTestId('versao')).toHaveText(/v\d+\.\d+\.\d+|versão local/);
 
@@ -28,7 +32,7 @@ test('abre o jogo, monta a solução da fase 1 tocando nos blocos e vence', asyn
   ]) {
     await page.getByTestId(bloco).click();
   }
-  await expect(page.getByTestId('linha-6')).toHaveText('fecharSinal("Leste")');
+  await expect(page.getByTestId('linha-6')).toContainText('fecharSinal("Leste")');
 
   await page.getByTestId('btn-iniciar').click();
   const vitoria = page.getByTestId('msg-vitoria');

@@ -81,11 +81,14 @@ export interface DadosFim {
   aoRepetir: () => void;
   aoMenu: () => void;
   /** Só na última fase: o JavaScript completo que o jogador consertou. */
+  /** Só na última fase: o JavaScript completo que o jogador consertou. */
   jsFinal?: string;
+  /** Todas as fases do jogo, para gerar o resumo final. */
+  todasFases?: Fase[];
 }
 
 export function telaFimFase(d: DadosFim): HTMLElement {
-  return el(
+  const container = el(
     'div',
     { classe: 'tela', testid: d.ultima ? 'tela-fim-jogo' : 'tela-fim-fase' },
     el('h2', {}, d.ultima ? 'Você completou o Sinal Aberto!' : `Fase ${d.fase.id} concluída!`),
@@ -94,13 +97,47 @@ export function telaFimFase(d: DadosFim): HTMLElement {
       { classe: 'estrelas-fim', testid: 'estrelas', rotulo: `${d.estrelas} de 3 estrelas` },
       el('span', { 'aria-hidden': 'true', style: 'font-size:2rem;color:var(--foco);letter-spacing:4px' }, estrelasTexto(d.estrelas)),
     ),
-    el('div', { classe: 'cartao' }, el('p', { testid: 'revelacao', style: 'color:var(--texto)' }, d.fase.revelacao)),
-    el('p', {}, `O que você aprendeu: ${d.fase.conceito}`),
-    d.jsFinal !== undefined && el('pre', { classe: 'codigo', testid: 'js-final' }, d.jsFinal),
-    d.ultima && el('p', { style: 'color:var(--texto);font-weight:700' }, 'Você leu e consertou código de verdade.'),
-    d.ultima
-      ? botao('Voltar ao menu', d.aoMenu, { classe: 'botao-grande', testid: 'btn-menu' })
-      : botao('Próxima fase ➜', d.aoProxima, { classe: 'botao-grande', testid: 'btn-proxima' }),
-    botao('Jogar esta fase de novo', d.aoRepetir, { classe: 'botao-secundario', testid: 'btn-repetir' }),
   );
+
+  if (d.ultima && d.todasFases) {
+    const resumo = d.todasFases.map(f => el('li', { style: 'margin-bottom: 0.5rem;' }, el('strong', {}, `${f.titulo}: `), f.conceito));
+    container.append(
+      el('div', { classe: 'cartao', style: 'max-height: 200px; overflow-y: auto; text-align: left;' }, 
+        el('h3', { style: 'margin-top: 0;' }, 'O que você aprendeu na jornada:'),
+        el('ul', { style: 'padding-left: 1.2rem; font-size: 0.9rem;' }, ...resumo)
+      ),
+      el('p', { testid: 'revelacao', style: 'color:var(--texto)' }, 'Programação não é só decorar comandos, é resolver problemas. Você já está pensando como alguém da área de tecnologia!'),
+      d.jsFinal !== undefined ? el('pre', { classe: 'codigo', testid: 'js-final' }, d.jsFinal) : '',
+      el('p', { style: 'color:var(--texto);font-weight:700' }, 'Você leu, criou e consertou código de verdade.')
+    );
+
+    const btnCompartilhar = botao('Compartilhar Vitória', async () => {
+      const texto = `Venci o Sinal Aberto e virei um Controlador de Trânsito!\n\nVeja o código que eu montei:\n\n${d.jsFinal}\n\nJogue também: https://joaopedro0s.github.io/sinal-aberto`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Sinal Aberto - Vitória!', text: texto });
+        } catch { /* ignorar cancelamento */ }
+      } else {
+        await navigator.clipboard.writeText(texto);
+        btnCompartilhar.textContent = 'Copiado!';
+        setTimeout(() => { btnCompartilhar.textContent = 'Compartilhar Vitória'; }, 3000);
+      }
+    }, { classe: 'botao-secundario', testid: 'btn-compartilhar' });
+
+    container.append(
+      btnCompartilhar,
+      botao('Voltar ao menu principal', d.aoMenu, { classe: 'botao-grande', testid: 'btn-menu' }),
+      botao('Melhorar minha pontuação', d.aoRepetir, { classe: 'botao-secundario', testid: 'btn-repetir' })
+    );
+
+  } else {
+    container.append(
+      el('div', { classe: 'cartao' }, el('p', { testid: 'revelacao', style: 'color:var(--texto)' }, d.fase.revelacao)),
+      el('p', {}, `O que você aprendeu: ${d.fase.conceito}`),
+      botao('Próxima fase ➜', d.aoProxima, { classe: 'botao-grande', testid: 'btn-proxima' }),
+      botao('Jogar esta fase de novo', d.aoRepetir, { classe: 'botao-secundario', testid: 'btn-repetir' })
+    );
+  }
+
+  return container;
 }

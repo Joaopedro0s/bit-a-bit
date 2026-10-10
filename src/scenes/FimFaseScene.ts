@@ -69,6 +69,7 @@ export class FimFaseScene extends Phaser.Scene {
         fase,
         estrelas: dados.estrelas,
         ultima,
+        todasFases: ultima ? fases : undefined,
         jsFinal: ultima ? gerarJs(montarPrograma(dados.linhas)) : undefined,
         aoProxima: () => {
           this.cameras.main.fadeOut(200, 0, 0, 0);
