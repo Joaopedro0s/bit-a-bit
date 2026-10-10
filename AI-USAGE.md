@@ -1,6 +1,16 @@
-Integrante: Joao Pedro Fonseca Alves de Carvalho
-Modelo de IA usado: Gemini 3.1 Pro (High)
+# Registro de uso de IA generativa
 
-Integrante: Joao Pedro Fonseca Alves de Carvalho | Ferramenta: Claude Opus 5.5 (Claude Code) | Finalidade: troca do jogo placeholder Bit a Bit pelo Sinal Aberto (núcleo, fases, cenas, testes e documentação), com revisão do integrante
+| Data | Ferramenta | Integrante | Finalidade | Prompt (resumo) | Resultado aceito | Revisão humana | Commit/PR |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-04 | Gemini 3.1 Pro (High) | Joao Pedro Fonseca Alves de Carvalho | Esqueleto inicial do jogo Bit a Bit e da esteira CI/CD (estrutura do repo, Vite, TypeScript, workflows, testes E2E, GDD placeholder) | "Criar projeto completo de jogo educativo web com CI/CD no GitHub Actions" | Sim | Sim — revisão de código, ajuste de paths e variáveis de CI | `36bf158` |
+| 2026-10-04 | Claude Opus 5.5 (Claude Code) | Joao Pedro Fonseca Alves de Carvalho | Troca do jogo placeholder Bit a Bit pelo Sinal Aberto: núcleo (AST, interpretador, simulação), 5 fases calibradas, cenas Phaser, Mesa de Programação, editor da fase 5, testes de integração e de unidade, Service Worker e documentação (GDD, README, THIRD_PARTY) | "Substituir o jogo placeholder pelo Sinal Aberto — semáforo que ensina lógica de programação, com blocos por toque, simulação determinística e JS real na fase 5" | Sim | Sim — playtest manual de todas as fases, revisão de cada arquivo, ajuste de limiares e mensagens | `feature/jogo-sinal-aberto` → PR #11 (`55f1358`) |
+| 2026-10-09 | Gemini 3.6 Flash | Kauan Alejandro da Rosa | Testes de unidade para casos de borda em `src/core` e elaboração da documentação de qualidade (`docs/qualidade.md`) | "Gerar testes de borda para os módulos core e documentar métricas de qualidade" | Sim | Sim — revisão dos asserts e da redação do relatório | `f944305` (INT-04) |
+| 2026-10-09 | Gemini 3.6 Flash | Kauan Alejandro da Rosa | Criação do workflow `.github/workflows/qualidade.yml` para validação de build e limite de tamanho de artefato | "Criar workflow CI que valide build e verifique tamanho do bundle" | Sim | Sim — revisão dos steps e dos limites configurados | `d21a62a` / `02849e9` (INT-06) |
+| 2026-10-09 | Gemini 3.6 Flash | Kauan Alejandro da Rosa | Testes de unidade para a lógica de seleção de versão do carregador em `tests/unit/carregador.test.ts` | "Gerar testes para a função de escolha de versão no carregador" | Sim | Sim — revisão dos cenários e valores esperados | `86eccfe` / `08b6875` (INT-07) |
+| 2026-10-09 | Claude Opus 4.6 (Antigravity) | João Gabriel Floriano Olimpio | Reescrita do AI-USAGE.md em formato de tabela, descrição de telas no GDD e criação do roteiro de pitch | "Reescrever AI-USAGE.md como tabela, descrever telas reais no GDD e criar roteiro de pitch em vídeo de 90 s" | Sim | Sim — revisão de conteúdo, conferência de dados com git log e ajustes de redação | este commit (INT-05, INT-02, INT-10) |
 
-Integrante: Kauan Alejandro da Rosa (Desenvolvimento e Qualidade) | Ferramenta: Gemini 3.6 Flash | Finalidade: testes de unidade para a lógica de escolha de versão do carregador em tests/unit/carregador.test.ts (INT-07)
+---
+
+## Declaração de conformidade
+
+Todos os integrantes do squad possuem direito de uso das ferramentas de IA listadas acima (planos gratuitos, acadêmicos ou pessoais). Todo resultado gerado por IA foi revisado por pelo menos um integrante humano, conferido contra plágio e adaptado ao contexto do projeto antes de ser incorporado ao repositório. Nenhum trecho foi copiado de obra de terceiros sem a devida atribuição em `THIRD_PARTY.md`.
