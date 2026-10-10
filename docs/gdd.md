@@ -1,7 +1,7 @@
 # GDD - Sinal Aberto: O Controlador de Trânsito
 
-**Versão:** 0.2.0
-**Data:** 2026-10-04
+**Versão:** 0.3.0
+**Data:** 2026-10-09
 **Repositório:** https://github.com/Joaopedro0s/sinal-aberto
 
 ## Premissa e problema
@@ -65,6 +65,43 @@ A cidade vive engarrafada e o controlador automático do cruzamento central queb
     |                                                        |
     +------------------ fim de jogo (após a fase 5) ---------+
 ```
+
+## Telas do jogo
+
+Abaixo estão as telas reais do Sinal Aberto, na ordem em que o jogador as encontra.
+
+### Menu principal
+
+![Menu principal](img/tela-menu.png)
+
+O cruzamento animado aparece no canvas (parte de cima). Embaixo, um texto de boas-vindas, o botão **▶ Jogar** e o botão **Como jogar** (que abre uma janela com instruções curtas). O número da versão fica no rodapé.
+
+### Seleção de fases
+
+![Seleção de fases](img/tela-selecao.png)
+
+Lista vertical com as 5 fases. Cada item mostra o número, o título e as estrelas conquistadas (★) ou o cadeado (🔒) se a fase anterior ainda não foi vencida. O botão ← no topo volta ao menu. O canvas mostra quantas fases foram vencidas.
+
+### Cruzamento + Mesa de Programação (fases 1 a 4)
+
+![Cruzamento e Mesa de Programação](img/tela-cruzamento.png)
+
+A tela de jogo principal, dividida em duas partes:
+
+- **Canvas (≈ 40% superior):** cruzamento visto de cima com pistas, faixas de pedestre, quarteirões, árvores e carros coloridos. Os semáforos mostram ▲ ABERTO (verde) ou ■ FECHADO (vermelho). Um painel ao vivo exibe os valores do estado (ex.: "Norte: 4 carros", "Ambulância: SIM").
+- **Mesa de Programação (≈ 60% inferior):** objetivos da fase, gaveta de blocos com rolagem horizontal (cores por categoria: amarelo para `se`, verde para ações, azul para variáveis, roxo para lógica), lista numerada do algoritmo montado e barra de ação com os botões **▶ INICIAR TRÁFEGO**, **🔍 PASSO A PASSO**, **↺ REINICIAR**, **⌫ Apagar**, **{ } Ver em JavaScript** e seletor de velocidade (1×, 2×, 4×).
+
+### Fase 5 — Editor de código JavaScript
+
+![Fase 5 — Editor de código](img/tela-fase5.png)
+
+Em vez da gaveta de blocos, a parte de baixo mostra o código JavaScript do controlador com partes destacadas como botões tocáveis. Cada toque troca o valor pela próxima opção válida (por exemplo, `<` vira `>`, `2` vira `4`, `Norte` vira `Leste`). O jogador precisa encontrar e corrigir o erro sem digitar: só trocando as partes destacadas. A barra de ação é a mesma das outras fases.
+
+### Fim de fase / Fim de jogo
+
+![Fim de fase](img/tela-fim-fase.png)
+
+Após cumprir os objetivos, o canvas mostra estrelas animadas e confete colorido. Embaixo, a tela mostra o número de estrelas conquistadas (de 1 a 3), o conceito aprendido e uma "revelação" (ex.: "Você acabou de escrever um laço com condição — é um `while` de verdade!"). Os botões levam à próxima fase ou permitem repetir. Na última fase, o texto final diz "Você leu e consertou código de verdade" e o botão volta ao menu.
 
 ## Level design
 
