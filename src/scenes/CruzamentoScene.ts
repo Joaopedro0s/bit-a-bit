@@ -96,10 +96,10 @@ export class CruzamentoScene extends Phaser.Scene {
     const p = contexto().progresso;
     if (this.fase.id === 1 && !p.tutorialOmitido) {
       this.tutorial = new Tutorial([
-        { texto: 'Olá! Eu sou o Sinaleiro. Vou te ensinar a controlar o trânsito!', alvo: 'btn-iniciar' },
+        { texto: 'Olá! Eu sou o Sinaleiro. Vou te ensinar a controlar o trânsito!' },
         { texto: 'Sua missão é deixar todos os carros passarem sem bater.', alvo: 'gaveta' },
-        { texto: 'Arraste o bloco verde "abrir(Norte)" e solte-o no seu algoritmo.', alvo: 'algoritmo', gatilho: () => this.mesa.linhas.length > 0 },
-        { texto: 'Agora clique em Roda Tudo para ver o que acontece!', alvo: 'btn-iniciar', gatilho: () => this.estado === 'rodando' },
+        { texto: 'Toque (ou arraste) o bloco verde abrirSinal("Norte") para colocá-lo no seu algoritmo.', alvo: 'algoritmo', gatilho: () => this.mesa.linhas.length > 0 },
+        { texto: 'Agora toque em INICIAR TRÁFEGO para ver o que acontece!', alvo: 'btn-iniciar', gatilho: () => this.estado === 'rodando' },
         { texto: 'Muito bem! Você está no controle.', gatilho: () => !this.sim?.ativa }
       ], () => {
         p.tutorialOmitido = true;

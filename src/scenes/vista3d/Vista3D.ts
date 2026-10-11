@@ -35,10 +35,12 @@ const MEIO = 1.3;
 /** Distância da linha de retenção ao centro do cruzamento */
 const RECUO = 1.5;
 /** Distância entre carros consecutivos na fila */
-const ESPACO_FILA = 1.2;
+const ESPACO_FILA = 1.65; // carro tem 0,95 de comprimento: deixa ~0,7 de vão entre eles
 
 /** Número máximo de carros (InstancedMesh). Aumentar se necessário nas etapas seguintes. */
 const MAX_CARROS = 30;
+/** Metade do lado da área que precisa aparecer inteira (cruzamento + começo das filas). */
+const RAIO_VISIVEL = 7;
 
 interface VisualCarro {
   id: number;
@@ -99,7 +101,13 @@ export class Vista3D {
 
   // Câmera — estado de animação
   private camAlvoPos = new Vector3(0, 10, 9);
+  private readonly camBase = new Vector3(0, 10, 9);
   private camAlvoLookAt = new Vector3(0, 0, 0);
+
+  // Ciclo de vida: sem isto, cada fase aberta deixava um loop de render rodando para sempre.
+  private quadro = 0;
+  private destruida = false;
+  private observador: ResizeObserver | null = null;
 
   constructor(private readonly elementoPai: HTMLElement) {
     this.renderer = new WebGLRenderer({ antialias: true, alpha: false });
@@ -109,6 +117,7 @@ export class Vista3D {
     this.renderer.shadowMap.enabled = false;
 
     this.canvas = this.renderer.domElement;
+    this.canvas.classList.add('vista3d');
     this.canvas.style.display = 'block';
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
@@ -160,8 +169,8 @@ export class Vista3D {
 
     // ── Redimensionamento responsivo
     this.ajustarTamanho();
-    const ro = new ResizeObserver(() => this.ajustarTamanho());
-    ro.observe(elementoPai);
+    this.observador = new ResizeObserver(() => this.ajustarTamanho());
+    this.observador.observe(elementoPai);
 
     elementoPai.appendChild(this.canvas);
     this.loop();
@@ -206,11 +215,16 @@ export class Vista3D {
 
   /** Animação de câmera na vitória: zoom ligeiro para cima. */
   mostrarVitoria(): void {
-    this.camAlvoPos = new Vector3(0, 13, 11);
+    // Leve zoom de comemoração, proporcional ao enquadramento atual.
+    this.camAlvoPos = this.camBase.clone().multiplyScalar(0.85);
   }
 
   /** Destrói o renderer e remove o canvas do DOM. */
   destruir(): void {
+    this.destruida = true;
+    if (this.quadro !== 0) cancelAnimationFrame(this.quadro);
+    this.observador?.disconnect();
+    this.observador = null;
     this.renderer.dispose();
     this.canvas.remove();
   }
@@ -218,7 +232,8 @@ export class Vista3D {
   // ─────────────────────────── interno
 
   private loop(): void {
-    requestAnimationFrame(() => this.loop());
+    if (this.destruida) return;
+    this.quadro = requestAnimationFrame(() => this.loop());
     // Suaviza câmera
     this.camera.position.lerp(this.camAlvoPos, 0.04);
     this.camera.lookAt(this.camAlvoLookAt);
@@ -231,9 +246,15 @@ export class Vista3D {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    // Ajusta zoom para manter o cruzamento inteiro na tela
-    const dist = (h < 300) ? 13 : (h < 400) ? 11 : 9;
-    this.camAlvoPos.set(0, dist * 1.1, dist);
+    // Afasta a câmera até um quadrado de RAIO_VISIVEL em volta do cruzamento caber
+    // tanto na vertical quanto na horizontal (telas em pé, deitadas e colunas estreitas).
+    const tanV = Math.tan(((this.camera.fov / 2) * Math.PI) / 180);
+    const tanH = tanV * (w / h);
+    const distancia = RAIO_VISIVEL / Math.min(tanV, tanH);
+    // Direção da câmera (0, 1.1, 1) normalizada: |(0, 1.1, 1)| ≈ 1.487
+    const dist = distancia / 1.487;
+    this.camBase.set(0, dist * 1.1, dist);
+    this.camAlvoPos.copy(this.camBase);
   }
 
   private sincronizarCarros(k: number): void {
