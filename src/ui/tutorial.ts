@@ -53,6 +53,7 @@ export class Tutorial {
     });
 
     document.body.appendChild(this.elFundo);
+    window.addEventListener('resize', this.posicionar);
     this.iniciarLoop();
     this.mostrarEtapa(0);
   }
@@ -78,7 +79,29 @@ export class Tutorial {
         alvo.classList.add('tutorial-destaque');
       }
     }
+    this.posicionar();
   }
+
+  /**
+   * O balão fica sempre em cima da área do cruzamento (#palco): ela nunca é alvo do
+   * tutorial, então o balão não cobre os blocos nem o botão INICIAR em nenhum layout.
+   */
+  private readonly posicionar = (): void => {
+    const palco = document.getElementById('palco');
+    const r = palco?.getBoundingClientRect();
+    if (!r || r.width === 0 || r.height === 0) {
+      this.elFundo.removeAttribute('style');
+      return;
+    }
+    Object.assign(this.elFundo.style, {
+      top: `${r.top}px`,
+      left: `${r.left}px`,
+      width: `${r.width}px`,
+      height: `${r.height}px`,
+      right: 'auto',
+      bottom: 'auto',
+    });
+  };
 
   private avancar(): void {
     this.indice++;
@@ -104,6 +127,7 @@ export class Tutorial {
       this.animacaoFrame = null;
     }
     document.querySelectorAll('.tutorial-destaque').forEach(e => e.classList.remove('tutorial-destaque'));
+    window.removeEventListener('resize', this.posicionar);
     this.elFundo.remove();
     this.aoConcluir();
   }
