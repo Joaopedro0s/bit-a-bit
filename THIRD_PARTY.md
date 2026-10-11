@@ -8,6 +8,7 @@ A lista completa, com dependências indiretas, está no SBOM (`reports/sbom.json
 | Componente | Versão | Licença | Uso |
 | --- | --- | --- | --- |
 | [Phaser](https://phaser.io) | 3.90.0 | MIT | Motor 2D: canvas, animações (tweens) e partículas |
+| [Three.js](https://threejs.org) | 0.170.0 | MIT | Motor 3D: renderização do cruzamento isométrico |
 | eventemitter3 (dependência do Phaser) | 5.0.4 | MIT | Eventos internos do Phaser |
 | [Ajv](https://ajv.js.org) | 8.x | MIT | Validação do `fases.json` pelo schema |
 | fast-deep-equal, json-schema-traverse, require-from-string (dependências do Ajv) | — | MIT | Usadas internamente pelo Ajv |

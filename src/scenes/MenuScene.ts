@@ -12,8 +12,12 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cameras.main.fadeIn(300, 0, 0, 0);
     this.demo = new Demo(this, 'SINAL ABERTO', 'O Controlador de Trânsito');
-    trocarPainel(telaMenu(contexto().versao, () => this.scene.start('SelecaoFases')));
+    trocarPainel(telaMenu(contexto().versao, () => {
+      this.cameras.main.fadeOut(200, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('SelecaoFases'));
+    }));
     publicarEstado({ tela: 'menu', fase: null, status: 'pronta', colisoes: 0 });
   }
 

@@ -398,5 +398,202 @@
       { "tipo": "FIM" },
       { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 1 } }
     ]
+  },
+  {
+    "id": 6,
+    "titulo": "Horário de Pico",
+    "conceito": "Escalabilidade: um bom programa funciona mesmo quando o problema cresce.",
+    "dica": "O fluxo de carros está altíssimo! Tente usar uma variável dependendo da fila, multiplicando o tempoAberto por carrosNorte.",
+    "revelacao": "Lidar com picos de tráfego (sejam carros ou usuários de um site) é um dos maiores desafios da engenharia.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 60,
+      "semente": 33,
+      "chegadas": {
+        "Norte": [{ "de": 0, "ate": 60, "taxa": 0.45 }],
+        "Leste": [{ "de": 0, "ate": 60, "taxa": 0.45 }]
+      },
+      "filaInicial": { "Norte": 5, "Leste": 5 }
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "maiorFila", "maximo": 18 },
+      { "tipo": "carrosQuePassaram", "minimo": 30 }
+    ],
+    "idealBlocos": 7,
+    "gaveta": {
+      "linhas": [
+        {
+          "tipo": "ATRIBUIR",
+          "variavel": "tempoAberto",
+          "valor": {
+            "tipo": "BIN",
+            "op": "*",
+            "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+            "dir": { "tipo": "NUM", "valor": 1.5 }
+          }
+        },
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "VAR", "nome": "tempoAberto" } },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } }
+      ],
+      "condicoes": [],
+      "operadores": []
+    },
+    "solucao": [
+      {
+        "tipo": "ATRIBUIR",
+        "variavel": "tempoAberto",
+        "valor": {
+          "tipo": "BIN",
+          "op": "*",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "dir": { "tipo": "NUM", "valor": 1.5 }
+        }
+      },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "VAR", "nome": "tempoAberto" } },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } },
+      { "tipo": "FECHAR", "via": "Leste" }
+    ],
+    "solucaoErrada": [
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 60 } }
+    ]
+  },
+  {
+    "id": 7,
+    "titulo": "Tempo chuvoso",
+    "conceito": "Condições adversas: o programa lida com o imprevisto.",
+    "dica": "A chuva deixa os carros lentos! Se você der pouco tempo, menos carros passarão e as filas vão crescer. Ajuste seus cálculos (x2.5 em vez de x1.5).",
+    "revelacao": "Algoritmos em produção muitas vezes dependem de fatores externos (clima, latência da rede) e devem se adaptar a eles.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 60,
+      "semente": 44,
+      "clima": "chuva",
+      "chegadas": {
+        "Norte": [{ "de": 0, "ate": 60, "taxa": 0.35 }],
+        "Leste": [{ "de": 0, "ate": 60, "taxa": 0.35 }]
+      },
+      "filaInicial": { "Norte": 3, "Leste": 3 }
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "maiorFila", "maximo": 18 },
+      { "tipo": "carrosQuePassaram", "minimo": 18 }
+    ],
+    "idealBlocos": 7,
+    "gaveta": {
+      "linhas": [
+        {
+          "tipo": "ATRIBUIR",
+          "variavel": "tempoAberto",
+          "valor": {
+            "tipo": "BIN",
+            "op": "*",
+            "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+            "dir": { "tipo": "NUM", "valor": 2.5 }
+          }
+        },
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "VAR", "nome": "tempoAberto" } },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 6 } }
+      ],
+      "condicoes": [],
+      "operadores": []
+    },
+    "solucao": [
+      {
+        "tipo": "ATRIBUIR",
+        "variavel": "tempoAberto",
+        "valor": {
+          "tipo": "BIN",
+          "op": "*",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "dir": { "tipo": "NUM", "valor": 2.5 }
+        }
+      },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "VAR", "nome": "tempoAberto" } },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 6 } },
+      { "tipo": "FECHAR", "via": "Leste" }
+    ],
+    "solucaoErrada": [
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 60 } }
+    ]
+  },
+  {
+    "id": 8,
+    "titulo": "Menos é mais",
+    "conceito": "Otimização: realizar a mesma tarefa usando menos recursos.",
+    "dica": "O código mais elegante é o menor código que funciona. Use a lógica ao invés de força bruta. Se o Norte estiver mais cheio que o Leste, abra Norte. Cuidado com o limite de 9 blocos!",
+    "revelacao": "Programadores buscam soluções eficientes. Código menor é mais fácil de ler e manter.",
+    "tipo": "blocos",
+    "transito": {
+      "duracao": 60,
+      "semente": 55,
+      "chegadas": {
+        "Norte": [{ "de": 0, "ate": 60, "taxa": 0.4 }],
+        "Leste": [{ "de": 0, "ate": 60, "taxa": 0.3 }]
+      },
+      "filaInicial": { "Norte": 2, "Leste": 2 }
+    },
+    "objetivos": [
+      { "tipo": "semColisao" },
+      { "tipo": "maiorFila", "maximo": 7 },
+      { "tipo": "maxBlocos", "maximo": 9 }
+    ],
+    "idealBlocos": 8,
+    "gaveta": {
+      "linhas": [
+        { "tipo": "ABRIR", "via": "Norte" },
+        { "tipo": "FECHAR", "via": "Norte" },
+        { "tipo": "ABRIR", "via": "Leste" },
+        { "tipo": "FECHAR", "via": "Leste" },
+        { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } },
+        { "tipo": "SENAO" },
+        { "tipo": "FIM" }
+      ],
+      "condicoes": [
+        {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "op": ">",
+          "dir": { "tipo": "VAR", "nome": "carrosLeste" }
+        }
+      ],
+      "operadores": []
+    },
+    "solucao": [
+      {
+        "tipo": "SE",
+        "condicao": {
+          "tipo": "CMP",
+          "esq": { "tipo": "VAR", "nome": "carrosNorte" },
+          "op": ">",
+          "dir": { "tipo": "VAR", "nome": "carrosLeste" }
+        }
+      },
+      { "tipo": "FECHAR", "via": "Leste" },
+      { "tipo": "ABRIR", "via": "Norte" },
+      { "tipo": "SENAO" },
+      { "tipo": "FECHAR", "via": "Norte" },
+      { "tipo": "ABRIR", "via": "Leste" },
+      { "tipo": "FIM" },
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 4 } }
+    ],
+    "solucaoErrada": [
+      { "tipo": "ESPERAR", "duracao": { "tipo": "NUM", "valor": 60 } }
+    ]
   }
 ]

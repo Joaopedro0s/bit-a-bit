@@ -3,6 +3,7 @@
 // Toda a arte é feita com formas geométricas (sem imagens de terceiros).
 
 import Phaser from 'phaser';
+import { sirene } from '../audio';
 import type { Via } from '../core/ast';
 import { VIAS } from '../core/ast';
 import type { Carro, Simulacao } from '../core/simulacao';
@@ -165,6 +166,7 @@ export class VistaCruzamento {
     const filhos: Phaser.GameObjects.GameObject[] = [g];
     let luz: Phaser.GameObjects.Rectangle | undefined;
     if (c.ambulancia) {
+      sirene();
       g.fillStyle(0xe53935, 1);
       if (vertical) g.fillRect(-w / 2, -3, w, 6);
       else g.fillRect(-3, -h / 2, 6, h);

@@ -7,7 +7,8 @@ export type Objetivo =
   | { tipo: 'carrosQuePassaram'; minimo: number }
   | { tipo: 'maiorFila'; maximo: number }
   | { tipo: 'esperaMaxAmbulancia'; maximo: number }
-  | { tipo: 'tempoAbertoSemCarros'; maximo: number };
+  | { tipo: 'tempoAbertoSemCarros'; maximo: number }
+  | { tipo: 'maxBlocos'; maximo: number };
 
 export interface ResultadoObjetivo {
   objetivo: Objetivo;
@@ -35,10 +36,12 @@ export function descreverObjetivo(o: Objetivo): string {
       return `A ambulância espera no máximo ${o.maximo} s`;
     case 'tempoAbertoSemCarros':
       return `Sinal verde sem carros por no máximo ${o.maximo} s`;
+    case 'maxBlocos':
+      return `Use no máximo ${o.maximo} blocos/linhas`;
   }
 }
 
-export function avaliarObjetivo(o: Objetivo, e: Estatisticas): ResultadoObjetivo {
+export function avaliarObjetivo(o: Objetivo, e: Estatisticas, linhasUsadas: number): ResultadoObjetivo {
   switch (o.tipo) {
     case 'semColisao':
       return { objetivo: o, valor: e.colisoes, cumprido: e.colisoes === 0 };
@@ -50,6 +53,8 @@ export function avaliarObjetivo(o: Objetivo, e: Estatisticas): ResultadoObjetivo
       return { objetivo: o, valor: e.esperaMaxAmbulancia, cumprido: e.esperaMaxAmbulancia <= o.maximo };
     case 'tempoAbertoSemCarros':
       return { objetivo: o, valor: e.tempoAbertoSemCarros, cumprido: e.tempoAbertoSemCarros <= o.maximo };
+    case 'maxBlocos':
+      return { objetivo: o, valor: linhasUsadas, cumprido: linhasUsadas <= o.maximo };
   }
 }
 
@@ -71,7 +76,7 @@ export function avaliarFase(
   linhasUsadas: number,
   idealBlocos: number,
 ): ResultadoFase {
-  const resultados = objetivos.map((o) => avaliarObjetivo(o, estatisticas));
+  const resultados = objetivos.map((o) => avaliarObjetivo(o, estatisticas, linhasUsadas));
   const venceu = status === 'terminada' && resultados.every((r) => r.cumprido);
   return {
     venceu,

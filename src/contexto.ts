@@ -8,11 +8,15 @@ export interface Contexto {
   progresso: Progresso;
   /** Parte de baixo da tela (DOM): menus e Mesa de Programação. */
   painel: HTMLElement;
+  /** Parte de cima da tela (DOM): canvas do Phaser ou Three.js. */
+  palco: HTMLElement;
   /** Texto da versão, lido do version.json. */
   versao: string;
   /** Velocidade da simulação (1, 2 ou 4; nos testes pode ser maior). */
   velocidade: number;
   modoTeste: boolean;
+  /** true = usar renderizador Three.js 3D; false = Phaser 2D. */
+  modo3D: boolean;
 }
 
 let atual: Contexto | null = null;

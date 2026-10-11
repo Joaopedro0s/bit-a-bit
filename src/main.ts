@@ -1,4 +1,5 @@
 // Ponto de entrada: monta o layout (canvas em cima, painel embaixo) e inicia o Phaser.
+// Em modo 3D, o cruzamento é renderizado pelo Three.js (Vista3D) dentro do mesmo #palco.
 
 import './ui/estilos.css';
 import Phaser from 'phaser';
@@ -15,10 +16,13 @@ import { ALTURA, LARGURA } from './scenes/vistaCruzamento';
 import { registrarServiceWorker } from './sw/registrar';
 import { ligarHookDeTeste } from './testeHook';
 import { el } from './ui/dom';
+import { suportaWebGL } from './scenes/vista3d/detectorWebGL';
 
 const parametros = new URLSearchParams(window.location.search);
 const modoTeste = parametros.get('teste') === '1';
 if (modoTeste) ligarHookDeTeste();
+// Ativa o renderizador 3D se WebGL estiver disponível (desativado com ?modo2d=1).
+const modo3D = suportaWebGL() && parametros.get('modo2d') !== '1';
 
 const app = document.getElementById('app') as HTMLElement;
 const palco = el('div', { id: 'palco', role: 'img', rotulo: 'Cruzamento visto de cima com os carros e os semáforos' });
@@ -30,6 +34,8 @@ try {
     fases: carregarFases(dados),
     progresso: carregarProgresso(),
     painel,
+    palco,
+    modo3D,
     versao: '',
     // Nos testes E2E dá para acelerar a simulação com ?vel=N.
     velocidade: modoTeste ? Math.min(50, Math.max(1, Number(parametros.get('vel')) || 1)) : 1,

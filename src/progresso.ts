@@ -6,6 +6,8 @@ export const CHAVE_PROGRESSO = 'sinalAberto.progresso.v1';
 export interface Progresso {
   /** Melhor número de estrelas por id de fase. */
   estrelas: Record<number, number>;
+  /** Se true, o tutorial da fase 1 já foi feito ou pulado. */
+  tutorialOmitido?: boolean;
 }
 
 type Armazenamento = Pick<Storage, 'getItem' | 'setItem'>;
@@ -21,7 +23,7 @@ function armazenamentoPadrao(): Armazenamento | null {
 export function carregarProgresso(armazenamento = armazenamentoPadrao()): Progresso {
   try {
     const texto = armazenamento?.getItem(CHAVE_PROGRESSO);
-    if (!texto) return { estrelas: {} };
+    if (!texto) return { estrelas: {}, tutorialOmitido: false };
     const dados = JSON.parse(texto) as Partial<Progresso>;
     const estrelas: Record<number, number> = {};
     for (const [id, n] of Object.entries(dados.estrelas ?? {})) {
@@ -29,9 +31,9 @@ export function carregarProgresso(armazenamento = armazenamentoPadrao()): Progre
         estrelas[Number(id)] = n;
       }
     }
-    return { estrelas };
+    return { estrelas, tutorialOmitido: dados.tutorialOmitido ?? false };
   } catch {
-    return { estrelas: {} };
+    return { estrelas: {}, tutorialOmitido: false };
   }
 }
 
@@ -45,7 +47,7 @@ export function salvarProgresso(p: Progresso, armazenamento = armazenamentoPadra
 
 /** Guarda o resultado, mantendo sempre o melhor número de estrelas. */
 export function registrarEstrelas(p: Progresso, faseId: number, estrelas: number): Progresso {
-  return { estrelas: { ...p.estrelas, [faseId]: Math.max(p.estrelas[faseId] ?? 0, estrelas) } };
+  return { ...p, estrelas: { ...p.estrelas, [faseId]: Math.max(p.estrelas[faseId] ?? 0, estrelas) } };
 }
 
 /** A fase 1 sempre está liberada; as outras, quando a anterior foi vencida. */

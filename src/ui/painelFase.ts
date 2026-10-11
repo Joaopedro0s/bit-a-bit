@@ -1,7 +1,7 @@
 // Parte comum do painel de uma fase: título, objetivos, mensagens e barra de ação.
 // A Mesa de blocos (fases 1-4) e o editor de código (fase 5) herdam daqui.
 
-import { alternarSom, somLigado } from '../audio';
+import { alternarSom, somLigado, alternarVibracao, vibracaoLigada } from '../audio';
 import type { Fase } from '../core/fases';
 import { descreverObjetivo, type ResultadoObjetivo } from '../core/objetivos';
 import type { Linha } from '../core/programa';
@@ -20,7 +20,7 @@ export interface AcoesPainel {
 
 export type EstadoPainel = 'editando' | 'rodando' | 'passo' | 'esperando' | 'acabou';
 
-type NomeBotao = 'iniciar' | 'passo' | 'reiniciar' | 'apagar' | 'verJs' | 'velocidade' | 'som';
+type NomeBotao = 'iniciar' | 'passo' | 'reiniciar' | 'apagar' | 'verJs' | 'velocidade' | 'som' | 'vibra';
 
 export abstract class PainelFase {
   /** O programa atual, como linhas da Mesa. */
@@ -58,9 +58,11 @@ export abstract class PainelFase {
       verJs: botao('{ } Ver em JavaScript', () => acoes.verJs(), { testid: 'btn-ver-js' }),
       velocidade: botao('', () => acoes.velocidade(), { testid: 'btn-velocidade' }),
       som: botao('', () => this.mostrarSom(alternarSom()), { testid: 'btn-som' }),
+      vibra: botao('', () => this.mostrarVibra(alternarVibracao()), { testid: 'btn-vibra' }),
     };
     this.mostrarVelocidade(velocidadeInicial);
     this.mostrarSom(somLigado());
+    this.mostrarVibra(vibracaoLigada());
     this.raiz = el('div', { classe: 'painel-fase' });
     this.raiz.style.display = 'contents';
   }
@@ -78,7 +80,7 @@ export abstract class PainelFase {
       ...conteudo,
       this.mensagem,
       el('div', { classe: 'barra-acao' }, this.botoes.iniciar, this.botoes.passo, this.botoes.reiniciar, this.botoes.apagar),
-      el('div', { classe: 'barra-extra' }, this.botoes.verJs, this.botoes.velocidade, this.botoes.som),
+      el('div', { classe: 'barra-extra' }, this.botoes.verJs, this.botoes.velocidade, this.botoes.som, this.botoes.vibra),
       this.anuncio,
     );
     this.atualizarBotoes();
@@ -106,6 +108,11 @@ export abstract class PainelFase {
   private mostrarSom(ligado: boolean): void {
     this.botoes.som.textContent = ligado ? '🔊 Som' : '🔇 Mudo';
     this.botoes.som.setAttribute('aria-pressed', String(ligado));
+  }
+
+  private mostrarVibra(ligado: boolean): void {
+    this.botoes.vibra.textContent = ligado ? '📳 Vibra' : '📴 Vibra';
+    this.botoes.vibra.setAttribute('aria-pressed', String(ligado));
   }
 
   destacarLinha(linha: number | null, tipo: 'ativa' | 'erro' = 'ativa'): void {

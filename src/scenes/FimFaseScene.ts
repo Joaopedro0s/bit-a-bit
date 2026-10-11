@@ -62,15 +62,27 @@ export class FimFaseScene extends Phaser.Scene {
     });
     this.time.delayedCall(300, () => confete.explode(50));
 
+    this.cameras.main.fadeIn(300, 0, 0, 0);
+
     trocarPainel(
       telaFimFase({
         fase,
         estrelas: dados.estrelas,
         ultima,
+        todasFases: ultima ? fases : undefined,
         jsFinal: ultima ? gerarJs(montarPrograma(dados.linhas)) : undefined,
-        aoProxima: () => this.scene.start('Cruzamento', { faseId: fase.id + 1 }),
-        aoRepetir: () => this.scene.start('Cruzamento', { faseId: fase.id }),
-        aoMenu: () => this.scene.start('Menu'),
+        aoProxima: () => {
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Cruzamento', { faseId: fase.id + 1 }));
+        },
+        aoRepetir: () => {
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Cruzamento', { faseId: fase.id }));
+        },
+        aoMenu: () => {
+          this.cameras.main.fadeOut(200, 0, 0, 0);
+          this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Menu'));
+        },
       }),
     );
     publicarEstado({ tela: 'fim', fase: fase.id, status: 'venceu' });

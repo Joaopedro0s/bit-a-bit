@@ -42,26 +42,50 @@ body {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
-  max-width: 500px;
   margin: 0 auto;
   background: var(--superficie);
 }
 
 #palco {
-  flex: 0 0 40%;
-  min-height: 0;
+  flex: 0 0 auto;
+  height: clamp(240px, 40vh, 420px);
   position: relative;
   background: #2b3a2f;
+  /* Garante que o canvas do Phaser ou Three.js ocupe todo o espaço */
+  overflow: hidden;
+}
+
+#palco canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 #painel {
-  flex: 1 1 60%;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
   overflow-y: auto;
+}
+
+/* Modo paisagem / desktop: divide a tela ao meio */
+@media (min-width: 600px) and (orientation: landscape) {
+  #app {
+    flex-direction: row;
+    max-width: 1200px;
+  }
+  #palco {
+    flex: 1 1 50%;
+    height: 100%;
+  }
+  #painel {
+    flex: 1 1 50%;
+  }
 }
 
 button {
@@ -293,6 +317,15 @@ p {
   border-radius: 6px;
   border-left: 4px solid transparent;
   overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: grab;
+}
+
+.algoritmo li:active {
+  cursor: grabbing;
 }
 
 .algoritmo li::marker {
@@ -324,6 +357,25 @@ p {
   margin-left: -30px;
   color: var(--texto-fraco);
   font-family: inherit;
+}
+
+.arrastando {
+  opacity: 0.5;
+}
+
+.alvo-drop {
+  border-top: 2px solid var(--verde) !important;
+}
+
+.btn-apagar-linha {
+  background: transparent !important;
+  color: var(--vermelho) !important;
+  border: none !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .barra-acao {
@@ -469,4 +521,75 @@ p {
   * {
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------- Tutorial ---------- */
+.tutorial-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.tutorial-balao {
+  background: var(--superficie);
+  border: 2px solid var(--laranja);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  max-width: 500px;
+  width: 100%;
+  pointer-events: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+
+.tutorial-mascote {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+}
+
+.tutorial-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.tutorial-texto {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.btn-pular {
+  align-self: flex-start;
+  padding: 4px 10px;
+  min-height: 32px;
+  font-size: 0.8rem;
+  background: var(--superficie-2);
+}
+
+.tutorial-destaque {
+  position: relative;
+  z-index: 101;
+  box-shadow: 0 0 0 4px var(--laranja), 0 0 20px var(--laranja);
+  border-radius: 4px;
+}
+
+@keyframes pulo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.pulo .tutorial-mascote {
+  animation: pulo 0.3s ease-out;
 }
